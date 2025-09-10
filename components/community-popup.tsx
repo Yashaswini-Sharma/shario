@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/lib/auth-context"
 import { createCommunity, joinCommunity, generateInviteCode } from "@/lib/firebase-services"
+import { CommunityMessaging } from "./community-messaging"
 
 interface CommunityPopupProps {
   isOpen: boolean
@@ -162,14 +163,13 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
         )}
 
         <div className="mt-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="join">Join</TabsTrigger>
-              <TabsTrigger value="create">Create</TabsTrigger>
-              <TabsTrigger value="generate">Generate Code</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="join" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="join">Join</TabsTrigger>
+            <TabsTrigger value="create">Create</TabsTrigger>
+            <TabsTrigger value="generate">Generate Code</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+          </TabsList>            <TabsContent value="join" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Join a Community</CardTitle>
@@ -280,6 +280,13 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
                   </Button>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="chat" className="space-y-4">
+              <CommunityMessaging
+                communityId="default-community" // This should be dynamic based on selected community
+                communityName="Fashion Community"
+              />
             </TabsContent>
           </Tabs>
         </div>
