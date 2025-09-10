@@ -1,14 +1,24 @@
 "use client"
 
 import { useState } from "react"
-import { Search, ShoppingBag, User, Heart, Menu, X, Users } from "lucide-react"
+import { Search, ShoppingBag, User, Heart, Menu, X, Users, LogIn, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CommunityPopup } from "./community-popup"
+import { useAuth } from "@/lib/auth-context"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCommunityOpen, setIsCommunityOpen] = useState(false)
+  const { user, signInWithGoogle, logout } = useAuth()
+
+  const handleAuth = async () => {
+    if (user) {
+      await logout()
+    } else {
+      await signInWithGoogle()
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,14 +66,21 @@ export function Header() {
               size="icon" 
               className="hidden md:flex"
               onClick={() => setIsCommunityOpen(true)}
+              title="Community"
             >
               <Users className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" className="hidden md:flex">
-              <User className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="hidden md:flex">
               <Heart className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:flex"
+              onClick={handleAuth}
+              title={user ? "Logout" : "Login"}
+            >
+              {user ? <LogOut className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
             </Button>
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingBag className="h-5 w-5" />
@@ -104,14 +121,20 @@ export function Header() {
                   variant="ghost" 
                   size="icon"
                   onClick={() => setIsCommunityOpen(true)}
+                  title="Community"
                 >
                   <Users className="h-5 w-5" />
                 </Button>
                 <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon">
                   <Heart className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleAuth}
+                  title={user ? "Logout" : "Login"}
+                >
+                  {user ? <LogOut className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
                 </Button>
               </div>
             </div>

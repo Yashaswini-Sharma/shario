@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Users, Plus, Code, Copy, Check } from "lucide-react"
+import { Users, Plus, Code, Copy, Check, AlertCircle } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -14,6 +14,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/lib/auth-context"
+import { createCommunity, joinCommunity, generateInviteCode } from "@/lib/firebase-services"
 
 interface CommunityPopupProps {
   isOpen: boolean
@@ -27,10 +30,91 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
   const [inviteCode, setInviteCode] = useState("")
   const [generatedCode, setGeneratedCode] = useState("")
   const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
-  const generateInviteCode = () => {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-    setGeneratedCode(code)
+  const { user } = useAuth()
+
+  const clearMessages = () => {
+    setError("")
+    setSuccess("")
+  }
+
+  const handleCreateCommunity = async () => {
+    if (!user) {
+      setError("Please sign in to create a community")
+      return
+    }
+
+    if (!communityName.trim() || !communityDescription.trim()) {
+      setError("Please fill in all fields")
+      return
+    }
+
+    setLoading(true)
+    clearMessages()
+
+    try {
+      const communityId = await createCommunity(communityName.trim(), communityDescription.trim())
+      setSuccess(`Community "${communityName}" created successfully!`)
+      setCommunityName("")
+      setCommunityDescription("")
+      setActiveTab("generate")
+      // Auto-generate an invite code
+      await handleGenerateCode(communityId)
+    } catch (error: any) {
+      setError(error.message || "Failed to create community")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleJoinCommunity = async () => {
+    if (!user) {
+      setError("Please sign in to join a community")
+      return
+    }
+
+    if (!inviteCode.trim()) {
+      setError("Please enter an invite code")
+      return
+    }
+
+    setLoading(true)
+    clearMessages()
+
+    try {
+      const communityId = await joinCommunity(inviteCode.trim().toUpperCase())
+      setSuccess("Successfully joined the community!")
+      setInviteCode("")
+    } catch (error: any) {
+      setError(error.message || "Failed to join community")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGenerateCode = async (communityId?: string) => {
+    if (!user) {
+      setError("Please sign in to generate invite codes")
+      return
+    }
+
+    setLoading(true)
+    clearMessages()
+
+    try {
+      // For now, we'll generate a code for the most recent community
+      // In a real app, you'd want to select which community
+      const code = await generateInviteCode(communityId || "default")
+      setGeneratedCode(code)
+      setSuccess("Invite code generated successfully!")
+    } catch (error: any) {
+      setError(error.message || "Failed to generate invite code")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const copyToClipboard = async () => {
@@ -39,24 +123,6 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
-  }
-
-  const handleCreateCommunity = () => {
-    // Here you would typically make an API call to create the community
-    console.log("Creating community:", { name: communityName, description: communityDescription })
-    // Reset form
-    setCommunityName("")
-    setCommunityDescription("")
-    // Switch to generate code tab
-    setActiveTab("generate")
-    generateInviteCode()
-  }
-
-  const handleJoinCommunity = () => {
-    // Here you would typically make an API call to join the community
-    console.log("Joining community with code:", inviteCode)
-    // Reset form
-    setInviteCode("")
   }
 
   return (
@@ -71,6 +137,29 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
             Join existing communities or create your own fashion community
           </SheetDescription>
         </SheetHeader>
+
+        {!user && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please sign in to access community features.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert className="mb-4">
+            <Check className="h-4 w-4" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="mt-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -101,9 +190,9 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
                   <Button
                     onClick={handleJoinCommunity}
                     className="w-full"
-                    disabled={!inviteCode.trim()}
+                    disabled={!inviteCode.trim() || loading || !user}
                   >
-                    Join Community
+                    {loading ? "Joining..." : "Join Community"}
                   </Button>
                 </CardContent>
               </Card>
@@ -139,10 +228,14 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
                   <Button
                     onClick={handleCreateCommunity}
                     className="w-full"
-                    disabled={!communityName.trim() || !communityDescription.trim()}
+                    disabled={!communityName.trim() || !communityDescription.trim() || loading || !user}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Community
+                    {loading ? "Creating..." : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Community
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -177,9 +270,10 @@ export function CommunityPopup({ isOpen, onClose }: CommunityPopupProps) {
                     </div>
                   </div>
                   <Button
-                    onClick={generateInviteCode}
+                    onClick={() => handleGenerateCode()}
                     variant="outline"
                     className="w-full"
+                    disabled={loading}
                   >
                     <Code className="h-4 w-4 mr-2" />
                     Generate New Code
