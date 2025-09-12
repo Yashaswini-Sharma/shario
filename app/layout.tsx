@@ -3,7 +3,9 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { WebSocketProvider } from "@/lib/websocket-context";
+import { CommunityProvider } from "@/lib/community-context";
 import { FloatingShareButton } from "@/components/floating-share-button";
+import { CommunityMembers } from "@/components/community-members";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,10 +34,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <WebSocketProvider>
-            {children}
-            <FloatingShareButton />
-          </WebSocketProvider>
+          <CommunityProvider>
+            <WebSocketProvider>
+              {children}
+              <FloatingShareButton />
+              <CommunityMembers />
+            </WebSocketProvider>
+          </CommunityProvider>
         </AuthProvider>
       </body>
     </html>

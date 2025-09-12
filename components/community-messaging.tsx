@@ -22,41 +22,54 @@ interface Message {
 }
 
 interface CommunityMessagingProps {
-  communityId: string
+  communityId?: string
   communityName: string
+  inviteCode?: string
 }
 
-export function CommunityMessaging({ communityId, communityName }: CommunityMessagingProps) {
+export function CommunityMessaging({ communityId, communityName, inviteCode }: CommunityMessagingProps) {
   const [message, setMessage] = useState("")
   const [isJoined, setIsJoined] = useState(false)
+  const [hasJoinedChat, setHasJoinedChat] = useState(false)
   const { user } = useAuth()
   const { messages, sendMessage, sharePage, joinCommunity, leaveCommunity, isConnected } = useWebSocket()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Filter messages for this community
-  const communityMessages = messages.filter(msg => msg.communityId === communityId)
+  // Use inviteCode as channel if available, otherwise use communityId
+  const channelId = inviteCode || communityId || "default-community"
 
   useEffect(() => {
-    if (user && communityId && !isJoined) {
-      joinCommunity(communityId)
+    if (user && channelId && hasJoinedChat && !isJoined) {
+      joinCommunity(channelId)
       setIsJoined(true)
     }
 
     return () => {
       if (isJoined) {
-        leaveCommunity(communityId)
+        leaveCommunity(channelId)
         setIsJoined(false)
       }
     }
-  }, [user, communityId, isJoined, joinCommunity, leaveCommunity])
+  }, [user, channelId, isJoined, hasJoinedChat, joinCommunity, leaveCommunity])
+
+  // Filter messages for this channel
+  const communityMessages = messages.filter(msg => msg.communityId === channelId)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [communityMessages])
 
+  const handleJoinChat = () => {
+    setHasJoinedChat(true)
+  }
+
+  const handleLeaveChat = () => {
+    setHasJoinedChat(false)
+  }
+
   const handleSendMessage = () => {
     if (message.trim() && user) {
-      sendMessage(communityId, message.trim())
+      sendMessage(channelId, message.trim())
       setMessage("")
     }
   }
@@ -64,7 +77,7 @@ export function CommunityMessaging({ communityId, communityName }: CommunityMess
   const handleSharePage = () => {
     const currentUrl = window.location.pathname
     const pageTitle = document.title || "Shared Page"
-    sharePage(communityId, currentUrl, pageTitle)
+    sharePage(channelId, currentUrl, pageTitle)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -88,6 +101,27 @@ export function CommunityMessaging({ communityId, communityName }: CommunityMess
     )
   }
 
+  if (!hasJoinedChat) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center space-y-4">
+            <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Join {communityName} Chat</h3>
+              <p className="text-muted-foreground mb-4">
+                Connect with other community members in real-time. Share pages and chat about fashion!
+              </p>
+              <Button onClick={handleJoinChat} className="w-full">
+                Join Chat
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="h-[500px] flex flex-col">
       <CardHeader className="pb-3">
@@ -101,6 +135,14 @@ export function CommunityMessaging({ communityId, communityName }: CommunityMess
             <span className="text-xs text-muted-foreground">
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleLeaveChat}
+              className="ml-2"
+            >
+              Leave Chat
+            </Button>
             <Button
               size="sm"
               variant="outline"

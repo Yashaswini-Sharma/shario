@@ -16,9 +16,16 @@ interface Message {
   pageTitle?: string
 }
 
+interface CommunityMember {
+  id: string
+  name: string
+  avatar?: string
+}
+
 interface WebSocketContextType {
   socket: Socket | null
   messages: Message[]
+  communityMembers: CommunityMember[]
   sendMessage: (communityId: string, content: string) => void
   sharePage: (communityId: string, pageUrl: string, pageTitle: string) => void
   joinCommunity: (communityId: string) => void
@@ -31,6 +38,7 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 export function WebSocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  const [communityMembers, setCommunityMembers] = useState<CommunityMember[]>([])
   const [isConnected, setIsConnected] = useState(false)
   const { user } = useAuth()
 
@@ -66,6 +74,10 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
             window.location.href = data.pageUrl
           }
         }
+      })
+
+      newSocket.on('community_members', (data: { communityId: string, members: CommunityMember[] }) => {
+        setCommunityMembers(data.members)
       })
 
       setSocket(newSocket)
@@ -116,6 +128,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const value = {
     socket,
     messages,
+    communityMembers,
     sendMessage,
     sharePage,
     joinCommunity,

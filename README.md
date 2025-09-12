@@ -106,19 +106,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Communities are readable by all authenticated users
+    // Communities can be created by authenticated users and read by all authenticated users
     match /communities/{communityId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null &&
-        (resource == null ||
-         resource.data.creatorId == request.auth.uid ||
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+        (resource.data.creatorId == request.auth.uid ||
          resource.data.members.hasAny([request.auth.uid]));
     }
 
-    // Invite codes can be read by authenticated users
+    // Invite codes can be created and read by authenticated users
     match /inviteCodes/{codeId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
     }
   }
 }

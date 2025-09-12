@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, ShoppingBag, User, Heart, Menu, X, Users, LogIn, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context"
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCommunityOpen, setIsCommunityOpen] = useState(false)
+  const [autoJoinCode, setAutoJoinCode] = useState<string | null>(null)
   const { user, signInWithGoogle, logout } = useAuth()
 
   const handleAuth = async () => {
@@ -19,6 +20,22 @@ export function Header() {
       await signInWithGoogle()
     }
   }
+
+  // Check for join parameter in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const joinCode = urlParams.get('join')
+      if (joinCode) {
+        setAutoJoinCode(joinCode.toUpperCase())
+        setIsCommunityOpen(true)
+        // Clean the URL without the join parameter
+        const newUrl = new URL(window.location.href)
+        newUrl.searchParams.delete('join')
+        window.history.replaceState({}, '', newUrl.toString())
+      }
+    }
+  }, [])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -141,7 +158,14 @@ export function Header() {
           </div>
         )}
       </div>
-      <CommunityPopup isOpen={isCommunityOpen} onClose={() => setIsCommunityOpen(false)} />
+      <CommunityPopup 
+        isOpen={isCommunityOpen} 
+        onClose={() => {
+          setIsCommunityOpen(false)
+          setAutoJoinCode(null)
+        }}
+        autoJoinCode={autoJoinCode}
+      />
     </header>
   )
 }

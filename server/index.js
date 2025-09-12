@@ -15,6 +15,7 @@ const io = new Server(server, {
 // Store active users and their communities
 const activeUsers = new Map()
 const communityUsers = new Map()
+const communityMembers = new Map() // Track actual members per community
 
 app.use(cors())
 
@@ -39,12 +40,35 @@ io.on('connection', (socket) => {
       }
       communityUsers.get(communityId).add(socket.id)
 
+      // Add user to community members
+      if (!communityMembers.has(communityId)) {
+        communityMembers.set(communityId, new Map())
+      }
+      communityMembers.get(communityId).set(socket.id, {
+        id: userData.userId,
+        name: userData.userName,
+        avatar: null // Could be extended to include avatar
+      })
+
       console.log(`${userData.userName} joined community: ${communityId}`)
 
       // Notify others in the community
       socket.to(communityId).emit('user_joined', {
         userName: userData.userName,
         communityId
+      })
+
+      // Send updated member list to all users in the community
+      const memberList = Array.from(communityMembers.get(communityId).values())
+      io.to(communityId).emit('community_members', {
+        communityId,
+        members: memberList
+      })
+
+      // Also send the member list to the newly joined user
+      socket.emit('community_members', {
+        communityId,
+        members: memberList
       })
     }
   })
@@ -58,6 +82,18 @@ io.on('connection', (socket) => {
       // Remove user from community tracking
       if (communityUsers.has(communityId)) {
         communityUsers.get(communityId).delete(socket.id)
+      }
+
+      // Remove user from community members
+      if (communityMembers.has(communityId)) {
+        communityMembers.get(communityId).delete(socket.id)
+
+        // Send updated member list to remaining users in the community
+        const memberList = Array.from(communityMembers.get(communityId).values())
+        io.to(communityId).emit('community_members', {
+          communityId,
+          members: memberList
+        })
       }
 
       console.log(`${userData.userName} left community: ${communityId}`)
@@ -124,10 +160,16 @@ io.on('connection', (socket) => {
       communityUsers.forEach((users, communityId) => {
         if (users.has(socket.id)) {
           users.delete(socket.id)
-          socket.to(communityId).emit('user_left', {
-            userName: userData.userName,
-            communityId
-          })
+
+          // Remove from community members and notify others
+          if (communityMembers.has(communityId)) {
+            communityMembers.get(communityId).delete(socket.id)
+            const memberList = Array.from(communityMembers.get(communityId).values())
+            socket.to(communityId).emit('community_members', {
+              communityId,
+              members: memberList
+            })
+          }
         }
       })
 
@@ -136,7 +178,7 @@ io.on('connection', (socket) => {
   })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3003
 
 server.listen(PORT, () => {
   console.log(`Socket.io server running on port ${PORT}`)
