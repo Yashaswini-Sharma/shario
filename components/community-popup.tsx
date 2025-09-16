@@ -326,15 +326,15 @@ export function CommunityPopup({ isOpen, onClose, autoJoinCode }: CommunityPopup
                 <CardHeader>
                   <CardTitle className="text-lg">Join a Community</CardTitle>
                   <CardDescription>
-                    Enter an invite code to join an existing fashion community
+                    Enter an invite code to join the community chat channel. The same code serves as both the invite and chat room identifier.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="invite-code">Invite Code</Label>
+                    <Label htmlFor="invite-code">Community Channel Code</Label>
                     <Input
                       id="invite-code"
-                      placeholder="Enter invite code"
+                      placeholder="Enter channel code (e.g., ABC123XY)"
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value)}
                     />
@@ -398,14 +398,14 @@ export function CommunityPopup({ isOpen, onClose, autoJoinCode }: CommunityPopup
                 <CardHeader>
                   <CardTitle className="text-lg">Share Community</CardTitle>
                   <CardDescription>
-                    Share your community with others using invite codes or direct links
+                    Share your community channel with others. The invite code doubles as the chat room identifier.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {generatedCode && (
                     <>
                       <div className="space-y-2">
-                        <Label>Invite Code</Label>
+                        <Label>Community Channel Code</Label>
                         <div className="flex gap-2">
                           <Input
                             value={generatedCode}
@@ -420,6 +420,9 @@ export function CommunityPopup({ isOpen, onClose, autoJoinCode }: CommunityPopup
                             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </Button>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                          This code is also your WebSocket channel identifier for real-time chat
+                        </p>
                       </div>
                       
                       <div className="space-y-2">
@@ -439,7 +442,7 @@ export function CommunityPopup({ isOpen, onClose, autoJoinCode }: CommunityPopup
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Anyone with this link can join your community
+                          Anyone with this link can join your community and chat in the same channel
                         </p>
                       </div>
                     </>

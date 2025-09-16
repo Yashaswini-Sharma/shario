@@ -1,48 +1,26 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import { AuthProvider } from "@/lib/auth-context";
-import { WebSocketProvider } from "@/lib/websocket-context";
-import { CommunityProvider } from "@/lib/community-context";
-import { FloatingShareButton } from "@/components/floating-share-button";
-import { CommunityMembers } from "@/components/community-members";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import type { Metadata } from 'next'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "Share.io - Fashion Community",
-  description: "Join fashion communities and share your style",
-};
+  title: 'v0 App',
+  description: 'Created with v0',
+  generator: 'v0.app',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>
-          <CommunityProvider>
-            <WebSocketProvider>
-              {children}
-              <FloatingShareButton />
-              <CommunityMembers />
-            </WebSocketProvider>
-          </CommunityProvider>
-        </AuthProvider>
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        {children}
+        <Analytics />
       </body>
     </html>
-  );
+  )
 }
