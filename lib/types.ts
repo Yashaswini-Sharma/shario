@@ -8,7 +8,41 @@ export interface User {
   createdAt: Date
 }
 
-// Community Types
+// Community Types (Firebase-based)
+export interface FirebaseCommunity {
+  id: string
+  name: string
+  description: string
+  type: 'public' | 'private'
+  joinCode: string
+  createdBy: string
+  createdByName: string
+  createdAt: number
+  memberCount: number
+  maxMembers: number
+  tags: string[]
+}
+
+export interface FirebaseCommunityMember {
+  userId: string
+  userName: string
+  joinedAt: number
+  role: 'admin' | 'member'
+  isActive: boolean
+}
+
+export interface FirebaseCommunityMessage {
+  id: string
+  userId: string
+  userName: string
+  content: string
+  timestamp: number
+  type: 'message' | 'page_share' | 'system'
+  pageUrl?: string
+  pageTitle?: string
+}
+
+// Legacy Community Types (WebSocket-based - kept for backward compatibility)
 export interface Community {
   id: string
   name: string

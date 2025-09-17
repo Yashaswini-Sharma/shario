@@ -57,6 +57,36 @@
         ".read": "auth != null && $userId == auth.uid",
         ".write": "auth != null && $userId == auth.uid"
       }
+    },
+    "communities": {
+      ".read": "auth != null",
+      ".indexOn": ["type", "joinCode"],
+      "$communityId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (newData.child('createdBy').val() == auth.uid || root.child('communityMembers').child($communityId).child(auth.uid).exists())",
+        "memberCount": {
+          ".write": "auth != null && root.child('communityMembers').child($communityId).child(auth.uid).exists()"
+        }
+      }
+    },
+    "communityMembers": {
+      "$communityId": {
+        ".read": "auth != null && root.child('communityMembers').child($communityId).child(auth.uid).exists()",
+        "$userId": {
+          ".read": "auth != null && (auth.uid == $userId || root.child('communityMembers').child($communityId).child(auth.uid).exists())",
+          ".write": "auth != null && (auth.uid == $userId || root.child('communityMembers').child($communityId).child(auth.uid).child('role').val() == 'admin')"
+        }
+      }
+    },
+    "communityMessages": {
+      "$communityId": {
+        ".read": "auth != null && root.child('communityMembers').child($communityId).child(auth.uid).exists()",
+        ".write": "auth != null && root.child('communityMembers').child($communityId).child(auth.uid).exists()",
+        "$messageId": {
+          ".read": "auth != null && root.child('communityMembers').child($communityId).child(auth.uid).exists()",
+          ".write": "auth != null && (newData.child('userId').val() == auth.uid || newData.child('userId').val() == 'system') && root.child('communityMembers').child($communityId).child(auth.uid).exists()"
+        }
+      }
     }
   }
 }
