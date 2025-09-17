@@ -103,80 +103,34 @@ export function Header() {
             <NavigationMenu className="hidden md:flex">
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium">MEN</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium leading-none">Clothing</h4>
-                        <div className="grid gap-1">
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            T-Shirts & Polos
-                          </NavigationMenuLink>
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Shirts
-                          </NavigationMenuLink>
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Jeans
-                          </NavigationMenuLink>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium leading-none">Footwear</h4>
-                        <div className="grid gap-1">
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Sneakers
-                          </NavigationMenuLink>
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Formal Shoes
-                          </NavigationMenuLink>
-                        </div>
-                      </div>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium">WOMEN</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium leading-none">Clothing</h4>
-                        <div className="grid gap-1">
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Dresses
-                          </NavigationMenuLink>
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Tops & Tees
-                          </NavigationMenuLink>
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Jeans & Trousers
-                          </NavigationMenuLink>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium leading-none">Accessories</h4>
-                        <div className="grid gap-1">
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Bags & Handbags
-                          </NavigationMenuLink>
-                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            Jewelry
-                          </NavigationMenuLink>
-                        </div>
-                      </div>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuLink className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
-                    KIDS
+                  <NavigationMenuLink asChild>
+                    <Link href="/mens" className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
+                      MEN
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuLink className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
-                    HOME & LIVING
+                  <NavigationMenuLink asChild>
+                    <Link href="/womens" className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
+                      WOMEN
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link href="/browse" className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
+                      BROWSE DATASET
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <Link href="/products" className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
+                      ALL PRODUCTS
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
 
