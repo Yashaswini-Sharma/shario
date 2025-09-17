@@ -11,7 +11,8 @@ import {
   equalTo,
   limitToFirst,
   serverTimestamp,
-  onDisconnect
+  onDisconnect,
+  runTransaction
 } from 'firebase/database'
 import { realtimeDb, auth } from './firebase'
 import { 
@@ -24,37 +25,76 @@ import {
 } from './game-types'
 
 export class GameMatchmaking {
-  /**
-   * Join the matchmaking queue - either join existing room or create new one
+      /**
+   * Join the matchmaking queue - Simple approach without transactions
    */
   static async joinQueue(userId: string, displayName: string, photoURL?: string): Promise<string> {
+    console.log(`🔍 ${displayName} (${userId}) joining matchmaking queue...`)
+    
     try {
-      // Ensure user is authenticated
-      if (!auth.currentUser) {
-        throw new Error('User must be authenticated to join game')
-      }
-
-      // First, add user to waiting room
-      await this.addToWaitingRoom(userId, displayName, photoURL)
-
-      // Look for available room first
-      const availableRoom = await this.findAvailableRoom()
+      // First, clean up any empty rooms
+      await this.cleanupEmptyRooms()
       
-      if (availableRoom) {
-        await this.joinRoom(availableRoom.id, userId, displayName, photoURL)
-        // Remove from waiting room since they joined a game
-        await this.removeFromWaitingRoom(userId)
-        return availableRoom.id
-      } else {
-        // Create new room and remove from waiting room
-        const roomId = await this.createRoom(userId, displayName, photoURL)
-        await this.removeFromWaitingRoom(userId)
-        return roomId
+      // Find all available rooms
+      const roomsRef = ref(realtimeDb, 'gameRooms')
+      const snapshot = await get(roomsRef)
+      
+      if (snapshot.exists()) {
+        const rooms = snapshot.val()
+        
+        // Look for available rooms
+        for (const [roomId, roomData] of Object.entries(rooms)) {
+          const room = roomData as any
+          
+          // Check if room is available and has space
+          if (room.status === 'waiting' && room.players) {
+            const playerCount = Object.keys(room.players).length
+            
+            console.log(`🔎 Room ${roomId}: ${playerCount}/4 players`)
+            
+            if (playerCount < 4) {
+              console.log(`✨ Trying to join room ${roomId}...`)
+              
+              // Try to add player directly - simple approach
+              try {
+                const playerRef = ref(realtimeDb, `gameRooms/${roomId}/players/${userId}`)
+                await update(playerRef, {
+                  userId,
+                  displayName,
+                  photoURL,
+                  ready: false,
+                  joinedAt: Date.now(),
+                  votes: 0,
+                  hasVoted: false
+                })
+                
+                // Update player count
+                const newPlayerCount = playerCount + 1
+                await update(ref(realtimeDb, `gameRooms/${roomId}`), {
+                  currentPlayers: newPlayerCount
+                })
+                
+                console.log(`✅ Successfully joined room ${roomId} (${newPlayerCount}/4 players)`)
+                await this.setupDisconnectHandler(roomId, userId)
+                return roomId
+                
+              } catch (error) {
+                console.log(`❌ Failed to join room ${roomId}, trying next...`)
+                // Continue to next room
+              }
+            }
+          }
+        }
       }
+      
+      // No available rooms, create new one
+      console.log('🆕 No available rooms found, creating new room...')
+      const roomId = await this.createRoom(userId, displayName, photoURL)
+      console.log(`✅ Created new room: ${roomId}`)
+      return roomId
+      
     } catch (error) {
-      console.error('Error joining queue:', error)
-      // If there's an error, make sure they stay in waiting room
-      await this.addToWaitingRoom(userId, displayName, photoURL)
+      console.error('💥 Error in joinQueue:', error)
       throw new Error(`Failed to join game: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -90,37 +130,59 @@ export class GameMatchmaking {
   }
 
   /**
-   * Find an available room that's waiting for players
+   * Find available rooms that are waiting for players
    */
-  static async findAvailableRoom(): Promise<GameRoom | null> {
+  static async findAvailableRooms(): Promise<GameRoom[]> {
     try {
       const roomsRef = ref(realtimeDb, 'gameRooms')
-      const waitingRoomsQuery = query(
-        roomsRef,
-        orderByChild('status'),
-        equalTo('waiting'),
-        limitToFirst(10)
-      )
-      
-      const snapshot = await get(waitingRoomsQuery)
+      const snapshot = await get(roomsRef)
       
       if (snapshot.exists()) {
         const rooms = snapshot.val()
         
-        // Find room with space
-        for (const roomId in rooms) {
-          const room = rooms[roomId]
-          if (room.currentPlayers < room.maxPlayers) {
-            return { ...room, id: roomId }
-          }
-        }
+        // Convert to array and sort by creation time (oldest first for better filling)
+        const roomArray = Object.entries(rooms)
+          .map(([id, room]: [string, any]) => ({ ...room, id }))
+          .filter(room => {
+            const isWaiting = room.status === 'waiting'
+            const hasSpace = room.currentPlayers < room.maxPlayers
+            const isValid = room.currentPlayers > 0 && room.currentPlayers <= room.maxPlayers
+            const notTooOld = Date.now() - room.createdAt < (GAME_CONFIG.ROOM_TIMEOUT_MINUTES * 60 * 1000)
+            
+            const result = isWaiting && hasSpace && isValid && notTooOld
+            
+            console.log(`Room ${room.id}: status=${room.status}, players=${room.currentPlayers}/${room.maxPlayers}, age=${Math.round((Date.now() - room.createdAt) / 1000)}s, valid=${result}`)
+            
+            return result
+          })
+          // Sort by current players (fill rooms closer to capacity first) then by creation time
+          .sort((a, b) => {
+            // Primary sort: rooms with more players first (to fill them up faster)
+            if (b.currentPlayers !== a.currentPlayers) {
+              return b.currentPlayers - a.currentPlayers
+            }
+            // Secondary sort: older rooms first
+            return a.createdAt - b.createdAt
+          })
+        
+        console.log(`Found ${roomArray.length} available rooms`)
+        return roomArray
       }
       
-      return null
+      console.log('No available rooms found')
+      return []
     } catch (error) {
-      console.error('Error finding available room:', error)
-      return null
+      console.error('Error finding available rooms:', error)
+      return []
     }
+  }
+
+  /**
+   * Find an available room that's waiting for players (legacy method)
+   */
+  static async findAvailableRoom(): Promise<GameRoom | null> {
+    const rooms = await this.findAvailableRooms()
+    return rooms.length > 0 ? rooms[0] : null
   }
 
   /**
@@ -153,12 +215,16 @@ export class GameMatchmaking {
         createdAt: Date.now()
       }
 
+      console.log(`🆕 Creating new room for ${displayName} with theme: ${randomTheme.name}, budget: $${randomBudget}`)
+
       const roomsRef = ref(realtimeDb, 'gameRooms')
       const newRoomRef = push(roomsRef, newRoom)
       
       if (!newRoomRef.key) {
         throw new Error('Failed to create room')
       }
+
+      console.log(`✅ Successfully created room ${newRoomRef.key} (1/${GAME_CONFIG.MAX_PLAYERS} players)`)
 
       // Set up disconnect handler
       await this.setupDisconnectHandler(newRoomRef.key, userId)
@@ -171,30 +237,15 @@ export class GameMatchmaking {
   }
 
   /**
-   * Join an existing room
+   * Join an existing room - Simple direct approach
    */
   static async joinRoom(roomId: string, userId: string, displayName: string, photoURL?: string): Promise<void> {
     try {
-      const roomRef = ref(realtimeDb, `gameRooms/${roomId}`)
-      const snapshot = await get(roomRef)
-
-      if (!snapshot.exists()) {
-        throw new Error('Room not found')
-      }
-
-      const room = snapshot.val() as GameRoom
+      // Simple approach: just add the player directly
+      const playerRef = ref(realtimeDb, `gameRooms/${roomId}/players/${userId}`)
       
-      if (room.currentPlayers >= room.maxPlayers) {
-        throw new Error('Room is full')
-      }
-
-      if (room.status !== 'waiting') {
-        throw new Error('Game already in progress')
-      }
-
       // Add player to room
-      const updates: any = {}
-      updates[`players/${userId}`] = {
+      await update(playerRef, {
         userId,
         displayName,
         photoURL,
@@ -202,13 +253,26 @@ export class GameMatchmaking {
         joinedAt: Date.now(),
         votes: 0,
         hasVoted: false
+      })
+      
+      // Get current room to update player count
+      const roomRef = ref(realtimeDb, `gameRooms/${roomId}`)
+      const snapshot = await get(roomRef)
+      
+      if (snapshot.exists()) {
+        const room = snapshot.val()
+        const playerCount = room.players ? Object.keys(room.players).length : 0
+        
+        // Update player count
+        await update(roomRef, {
+          currentPlayers: playerCount
+        })
+        
+        console.log(`✅ Joined room ${roomId} (${playerCount}/4 players)`)
+        
+        // Set up disconnect handler
+        await this.setupDisconnectHandler(roomId, userId)
       }
-      updates['currentPlayers'] = room.currentPlayers + 1
-
-      await update(roomRef, updates)
-
-      // Set up disconnect handler
-      await this.setupDisconnectHandler(roomId, userId)
 
     } catch (error) {
       console.error('Error joining room:', error)
@@ -384,6 +448,33 @@ export class GameMatchmaking {
   }
 
   /**
+   * Clean up empty rooms
+   */
+  static async cleanupEmptyRooms(): Promise<void> {
+    try {
+      const roomsRef = ref(realtimeDb, 'gameRooms')
+      const snapshot = await get(roomsRef)
+      
+      if (snapshot.exists()) {
+        const rooms = snapshot.val()
+        
+        for (const roomId in rooms) {
+          const room = rooms[roomId]
+          const actualPlayerCount = room.players ? Object.keys(room.players).length : 0
+          
+          // Remove empty rooms
+          if (actualPlayerCount === 0) {
+            console.log(`🧹 Cleaning up empty room ${roomId}`)
+            await remove(ref(realtimeDb, `gameRooms/${roomId}`))
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error cleaning up empty rooms:', error)
+    }
+  }
+
+  /**
    * Clean up old rooms (call periodically)
    */
   static async cleanupOldRooms(): Promise<void> {
@@ -397,7 +488,11 @@ export class GameMatchmaking {
         
         for (const roomId in rooms) {
           const room = rooms[roomId]
-          if (room.createdAt < cutoffTime && room.status !== 'active') {
+          const actualPlayerCount = room.players ? Object.keys(room.players).length : 0
+          
+          // Remove empty rooms or rooms with no actual players
+          if (actualPlayerCount === 0 || room.createdAt < cutoffTime && room.status !== 'active') {
+            console.log(`🧹 Cleaning up room ${roomId} (${actualPlayerCount} players, age: ${Math.round((Date.now() - room.createdAt) / 1000)}s)`)
             await remove(ref(realtimeDb, `gameRooms/${roomId}`))
           }
         }

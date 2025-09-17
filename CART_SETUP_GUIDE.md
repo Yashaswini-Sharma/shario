@@ -3,6 +3,7 @@
 ## 🔥 Firebase Setup
 
 ### 1. Firebase Configuration
+
 I've created an `.env.local` file with all the necessary Firebase environment variables. You need to:
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
@@ -13,13 +14,16 @@ I've created an `.env.local` file with all the necessary Firebase environment va
 6. Copy the config values and replace them in `.env.local`
 
 ### 2. Firestore Database Setup
+
 Create these collections in your Firestore:
+
 - `products` - For storing product data
 - `cartItems` - For storing individual cart items
 - `users` - For user data (already set up)
 - `communities` - For community features (already exists)
 
 ### 3. Firestore Security Rules
+
 Add these rules to your Firestore:
 
 ```javascript
@@ -30,19 +34,19 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Anyone can read products
     match /products/{productId} {
       allow read: if true;
       allow write: if false; // Only admins should write products
     }
-    
+
     // Users can manage their own cart items
     match /cartItems/{cartItemId} {
       allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
-    
+
     // Existing community rules...
   }
 }
@@ -53,6 +57,7 @@ service cloud.firestore {
 ### What's Implemented:
 
 1. **Firebase Cart Service** (`lib/firebase-cart-service.ts`)
+
    - Add items to cart
    - Remove items from cart
    - Update item quantities
@@ -61,17 +66,20 @@ service cloud.firestore {
    - Clear entire cart
 
 2. **React Cart Context** (`lib/cart-context.tsx`)
+
    - Global cart state management
    - Real-time cart updates
    - Error handling with toast notifications
    - Loading states
 
 3. **Updated Header** (`components/header.tsx`)
+
    - Dynamic cart count badge
    - Links to cart page
    - Real-time updates
 
 4. **Comprehensive Cart Page** (`app/cart/page.tsx`)
+
    - Full cart management interface
    - Quantity updates with +/- buttons
    - Remove items functionality
@@ -89,14 +97,17 @@ service cloud.firestore {
 ### 1. Set up Firebase (as described above)
 
 ### 2. Seed Sample Products
+
 Run this in your browser console after setting up Firebase:
+
 ```javascript
 // Import the seed function and run it
-import { seedProductsToFirebase } from './lib/products-data'
-seedProductsToFirebase()
+import { seedProductsToFirebase } from "./lib/products-data";
+seedProductsToFirebase();
 ```
 
 ### 3. Test the Cart
+
 1. Sign in with Google (using existing auth system)
 2. Go to `/products` page
 3. Try adding items to cart
@@ -106,6 +117,7 @@ seedProductsToFirebase()
 ## 📱 User Experience
 
 ### Cart Workflow:
+
 1. **Browse Products** → Select color/size options
 2. **Add to Cart** → Items stored in Firebase per user
 3. **View Cart** → Comprehensive cart management
@@ -113,6 +125,7 @@ seedProductsToFirebase()
 5. **Proceed to Checkout** → Ready for payment integration
 
 ### Key Features:
+
 - **Real-time Sync** - Cart updates across devices
 - **Persistent Storage** - Items saved in Firebase
 - **User Authentication** - Secure user-specific carts

@@ -27,30 +27,30 @@ Copy the rules from `firebase-realtime-rules.json` and paste them in Firebase Co
 
 ```json
 {
-  "rules": {
-    "gameRooms": {
-      ".read": "auth != null",
-      ".write": "auth != null",
-      "$roomId": {
-        ".read": "auth != null",
-        ".write": "auth != null",
-        "players": {
-          "$userId": {
-            ".read": "auth != null",
-            ".write": "auth != null && ($userId == auth.uid || root.child('gameRooms').child($roomId).child('players').child(auth.uid).exists())"
-          }
-        }
-      }
-    },
-    "waitingRoom": {
-      ".read": "auth != null",
-      ".write": "auth != null",
-      "$userId": {
-        ".read": "auth != null && $userId == auth.uid",
-        ".write": "auth != null && $userId == auth.uid"
-      }
-    }
-  }
+	"rules": {
+		"gameRooms": {
+			".read": "auth != null",
+			".write": "auth != null",
+			"$roomId": {
+				".read": "auth != null",
+				".write": "auth != null",
+				"players": {
+					"$userId": {
+						".read": "auth != null",
+						".write": "auth != null && ($userId == auth.uid || root.child('gameRooms').child($roomId).child('players').child(auth.uid).exists())"
+					}
+				}
+			}
+		},
+		"waitingRoom": {
+			".read": "auth != null",
+			".write": "auth != null",
+			"$userId": {
+				".read": "auth != null && $userId == auth.uid",
+				".write": "auth != null && $userId == auth.uid"
+			}
+		}
+	}
 }
 ```
 
@@ -72,6 +72,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-ABCDEFGH
 ```
 
 **To get these values:**
+
 1. Go to **Project Settings** (gear icon)
 2. Scroll to **"Your apps"** section
 3. Click on your web app or create one
@@ -87,6 +88,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-ABCDEFGH
 ### 6. Test the Setup
 
 1. **Start your development server:**
+
    ```bash
    npm run dev
    # or
@@ -104,11 +106,13 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-ABCDEFGH
 **Common Issues:**
 
 1. **Permission Denied Error:**
+
    - Make sure Realtime Database rules are published
    - Verify user is authenticated before joining game
    - Check that Database URL is correct in environment variables
 
 2. **Database URL Issues:**
+
    - Ensure the URL includes the protocol: `https://`
    - Make sure it ends with `/`
    - Check the URL in Firebase Console matches exactly
@@ -119,16 +123,17 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-ABCDEFGH
    - Make sure user is signed in before accessing game features
 
 **Debug Steps:**
+
 ```javascript
 // Add to browser console to debug
-console.log('Firebase Config:', {
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-})
+console.log("Firebase Config:", {
+	databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+	projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+});
 
 // Check auth state
-import { auth } from './lib/firebase'
-console.log('Current user:', auth.currentUser)
+import { auth } from "./lib/firebase";
+console.log("Current user:", auth.currentUser);
 ```
 
 ### 8. Production Considerations
@@ -142,6 +147,7 @@ console.log('Current user:', auth.currentUser)
 5. **Configure backup** if needed
 
 **Production Security Rules Example:**
+
 ```json
 {
   "rules": {
@@ -149,7 +155,7 @@ console.log('Current user:', auth.currentUser)
       ".read": "auth != null",
       "$roomId": {
         ".write": "auth != null && (
-          !data.exists() || 
+          !data.exists() ||
           data.child('players').child(auth.uid).exists() ||
           data.child('currentPlayers').val() < data.child('maxPlayers').val()
         )",
@@ -169,7 +175,7 @@ console.log('Current user:', auth.currentUser)
 ## 🎮 Game Features Now Available
 
 - **Real-time Matchmaking**: Players get connected instantly
-- **Random Themes & Budgets**: Each game has unique constraints  
+- **Random Themes & Budgets**: Each game has unique constraints
 - **Live Lobby Updates**: See players join/leave in real-time
 - **Game State Management**: Automatic progression through game phases
 - **Disconnect Handling**: Players are removed when they leave
@@ -177,6 +183,7 @@ console.log('Current user:', auth.currentUser)
 ## 🚀 Ready to Play!
 
 Once setup is complete, users can:
+
 1. Sign in with Google
 2. Click "Enter Game" on `/dress-to-impress`
 3. Get matched with other players automatically
