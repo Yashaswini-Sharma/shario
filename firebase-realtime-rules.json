@@ -1,0 +1,62 @@
+{
+  "rules": {
+    "gameRooms": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "players": {
+          "$userId": {
+            ".read": "auth != null",
+            ".write": "auth != null && ($userId == auth.uid || root.child('gameRooms').child($roomId).child('players').child(auth.uid).exists())"
+          }
+        },
+        "status": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('gameRooms').child($roomId).child('players').child(auth.uid).exists()"
+        },
+        "currentPlayers": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "theme": {
+          ".read": "auth != null",
+          ".write": "auth != null && !root.child('gameRooms').child($roomId).child('status').exists()"
+        },
+        "budget": {
+          ".read": "auth != null",
+          ".write": "auth != null && !root.child('gameRooms').child($roomId).child('status').exists()"
+        },
+        "maxPlayers": {
+          ".read": "auth != null",
+          ".write": "auth != null && !root.child('gameRooms').child($roomId).child('status').exists()"
+        },
+        "timeLimit": {
+          ".read": "auth != null",
+          ".write": "auth != null && !root.child('gameRooms').child($roomId).child('status').exists()"
+        },
+        "createdAt": {
+          ".read": "auth != null",
+          ".write": "auth != null && !root.child('gameRooms').child($roomId).child('status').exists()"
+        },
+        "startTime": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('gameRooms').child($roomId).child('players').child(auth.uid).exists()"
+        },
+        "endTime": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('gameRooms').child($roomId).child('players').child(auth.uid).exists()"
+        }
+      }
+    },
+    "waitingRoom": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$userId": {
+        ".read": "auth != null && $userId == auth.uid",
+        ".write": "auth != null && $userId == auth.uid"
+      }
+    }
+  }
+}

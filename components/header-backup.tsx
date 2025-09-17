@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { useCartCount } from "@/lib/cart-context"
-import { useAuth } from "@/lib/auth-context"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,83 +13,14 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-function UserProfile() {
-  const { user, logout } = useAuth()
-
-  if (!user) {
-    return (
-      <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/sign-in">
-            <User className="h-4 w-4 mr-2" />
-            <span className="hidden md:inline">Sign In</span>
-          </Link>
-        </Button>
-        <Button size="sm" asChild>
-          <Link href="/sign-up">
-            <span className="hidden md:inline">Sign Up</span>
-            <span className="md:hidden">Join</span>
-          </Link>
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={user.photoURL || ''} alt={user.displayName || ''} />
-            <AvatarFallback>
-              {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden md:inline text-sm">
-            {user.displayName || user.email}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-1.5">
-          <p className="text-sm font-medium">{user.displayName || 'User'}</p>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
-        </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/profile">
-            <User className="h-4 w-4 mr-2" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/orders">
-            <ShoppingBag className="h-4 w-4 mr-2" />
-            Orders
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout} className="text-red-600">
-          <User className="h-4 w-4 mr-2" />
-          Sign Out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
 
 export function Header() {
   const cartCount = useCartCount()
 
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+
+export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
@@ -202,7 +132,10 @@ export function Header() {
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
-            <UserProfile />
+            <Button variant="ghost" size="sm" className="hidden md:flex items-center space-x-2">
+              <User className="h-4 w-4" />
+              <span className="text-sm">Profile</span>
+            </Button>
 
             <Link href="/dress-to-impress">
               <Button variant="ghost" size="sm" className="relative" title="Dress to Impress Game">
