@@ -98,6 +98,63 @@ function extractColorFromTags(tags: string[]): string {
   return 'Blue'; // Default fallback
 }
 
+// Smart gender analysis based on tags, caption and styling cues
+function analyzeGenderFromContext(tags: string[], caption: string): string {
+  const allText = (tags.join(' ') + ' ' + caption).toLowerCase();
+  
+  // Strong women's indicators
+  const womensIndicators = [
+    'dress', 'skirt', 'blouse', 'heels', 'bra', 'lingerie', 
+    'purse', 'handbag', 'makeup', 'lipstick', 'nail polish',
+    'feminine', 'lady', 'ladies', 'woman', 'women', 'girl',
+    'pink', 'floral', 'lace', 'ruffles', 'crop top'
+  ];
+  
+  // Strong men's indicators
+  const mensIndicators = [
+    'beard', 'mustache', 'tie', 'suit jacket', 'tuxedo',
+    'masculine', 'man', 'men', 'male', 'guy', 'boy',
+    'polo shirt', 'cargo', 'boxers', 'brief'
+  ];
+  
+  // Check for strong gender indicators
+  const womensScore = womensIndicators.filter(indicator => allText.includes(indicator)).length;
+  const mensScore = mensIndicators.filter(indicator => allText.includes(indicator)).length;
+  
+  if (womensScore > mensScore && womensScore > 0) return 'Women';
+  if (mensScore > womensScore && mensScore > 0) return 'Men';
+  
+  // Article type based gender hints
+  if (allText.includes('dress') || allText.includes('skirt')) return 'Women';
+  
+  // Styling/fit based hints
+  if (allText.includes('fitted') || allText.includes('slim fit') || allText.includes('skinny')) {
+    // Could be either, but check for other context
+    if (allText.includes('jeans')) {
+      // Skinny jeans could be either - check other clues
+      return Math.random() > 0.4 ? 'Women' : 'Men'; // Slightly favor women for skinny jeans
+    }
+  }
+  
+  // Color based soft hints (not definitive but statistical)
+  const colorHints = {
+    'pink': 'Women',
+    'purple': 'Women', 
+    'lavender': 'Women',
+    'navy': 'Men',
+    'khaki': 'Men'
+  };
+  
+  for (const [color, gender] of Object.entries(colorHints)) {
+    if (allText.includes(color)) {
+      return Math.random() > 0.3 ? gender : (gender === 'Women' ? 'Men' : 'Women'); // 70% confidence
+    }
+  }
+  
+  // If no strong indicators, use balanced random
+  return Math.random() > 0.5 ? 'Men' : 'Women';
+}
+
 export async function enhanceProductMetadata(
   caption: string,
   tags: string[],
@@ -106,6 +163,7 @@ export async function enhanceProductMetadata(
   // First, use smart tag analysis as base
   const tagAnalysis = analyzeTagsForArticleType(tags);
   const colorFromTags = extractColorFromTags(tags);
+  const smartGender = analyzeGenderFromContext(tags, caption);
   
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -116,11 +174,17 @@ export async function enhanceProductMetadata(
     Caption: "${caption}"
     Tags: ${tags.join(', ')}
     
-    IMPORTANT: The tags are from ML image recognition and are very accurate. If tags say "jeans", it's jeans NOT shirts. If tags say "dress", it's a dress, etc.
+    IMPORTANT INSTRUCTIONS:
+    1. The tags are from ML image recognition and are very accurate. If tags say "jeans", it's jeans NOT shirts. If tags say "dress", it's a dress, etc.
+    2. For GENDER determination, look for these clues:
+       - Explicit mentions: "woman", "women", "lady", "man", "men", "male", "female"  
+       - Clothing types: dresses/skirts = Women, suits/ties = Men
+       - Style cues: fitted/skinny could be either, but check context
+       - If unclear, the smart analysis suggests: ${smartGender}
     
     Based on the description and ESPECIALLY THE TAGS, determine:
     
-    Gender: Men, Women, or Unisex (look for gender clues in tags/caption, if unclear randomly choose)
+    Gender: Men, Women, or Unisex (use the clues above, fallback to smart analysis)
     Category: Apparel, Footwear, Accessories, Personal Care, Free Gifts, Sporting Goods, or Home & Living
     Subcategory: For Apparel (Topwear, Bottomwear, Innerwear, Loungewear, Nightwear, Saree, etc.), 
                 For Footwear (Casual Shoes, Formal Shoes, Sports Shoes, Sandals, etc.),
@@ -130,7 +194,7 @@ export async function enhanceProductMetadata(
     Usage: Casual, Formal, Sports, Party, Ethnic, or Travel
     ArticleType: MUST match what the tags indicate - if tags mention "jeans" = Jeans, "dress" = Dresses, "shirt" = Shirts, "shoes" = Casual Shoes, etc.
     
-    Smart analysis suggests: ${JSON.stringify(tagAnalysis)}
+    Smart analysis suggests: ${JSON.stringify({...tagAnalysis, gender: smartGender})}
     Detected color from tags: ${colorFromTags}
     
     Existing metadata (don't override if already provided):
@@ -162,7 +226,7 @@ export async function enhanceProductMetadata(
       console.error('Error parsing Gemini response:', parseError);
       // Use smart tag analysis as fallback
       metadata = {
-        gender: Math.random() > 0.5 ? 'Men' : 'Women',
+        gender: smartGender,
         category: tagAnalysis.category,
         subcategory: tagAnalysis.subcategory,
         color: colorFromTags,
@@ -172,9 +236,9 @@ export async function enhanceProductMetadata(
       };
     }
 
-    // Merge with existing metadata, prioritizing tag analysis for key fields
+    // Merge with existing metadata, prioritizing smart analysis for gender and tag analysis for article type
     const enhancedMetadata: ProductMetadata = {
-      gender: existingMetadata.gender || metadata.gender || (Math.random() > 0.5 ? 'Men' : 'Women'),
+      gender: existingMetadata.gender || metadata.gender || smartGender,
       category: existingMetadata.category || metadata.category || tagAnalysis.category,
       subcategory: existingMetadata.subcategory || metadata.subcategory || tagAnalysis.subcategory,
       color: existingMetadata.color || metadata.color || colorFromTags,
@@ -188,7 +252,7 @@ export async function enhanceProductMetadata(
     console.error('Error calling Gemini API:', error);
     // Use smart tag analysis as fallback when Gemini fails
     return {
-      gender: existingMetadata.gender || (Math.random() > 0.5 ? 'Men' : 'Women'),
+      gender: existingMetadata.gender || smartGender,
       category: existingMetadata.category || tagAnalysis.category,
       subcategory: existingMetadata.subcategory || tagAnalysis.subcategory,
       color: existingMetadata.color || colorFromTags,
