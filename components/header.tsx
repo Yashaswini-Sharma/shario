@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { GameTimer } from "./game-timer"
+import { useGame } from "@/lib/game-context"
 
 function UserProfile() {
   const { user, logout } = useAuth()
@@ -90,14 +92,21 @@ function UserProfile() {
 
 export function Header() {
   const cartCount = useCartCount()
+  const { inGame, gamePhase } = useGame()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
+          {/* Logo or Timer */}
           <div className="flex items-center space-x-8">
-            <div className="text-2xl font-bold text-primary">StyleHub</div>
+            {gamePhase === 'styling' || gamePhase === 'voting' ? (
+              <GameTimer />
+            ) : (
+              <Link href="/" className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors">
+                StyleHub
+              </Link>
+            )}
 
             {/* Navigation Menu */}
             <NavigationMenu className="hidden md:flex">

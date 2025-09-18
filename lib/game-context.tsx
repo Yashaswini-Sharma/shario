@@ -3,7 +3,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useAuth } from './auth-context'
 import { GameMatchmaking } from './game-matchmaking'
-import { GameRoom, GamePlayer, OutfitSelection } from './game-types'
+import { GameRoom, GamePlayer, OutfitSelection, GameCartItem } from './game-types'
+import { FirebaseGameCartService } from './firebase-game-cart-service'
 import { toast } from '@/hooks/use-toast'
 
 interface GameContextType {
@@ -13,6 +14,8 @@ interface GameContextType {
   gamePhase: 'lobby' | 'styling' | 'voting' | 'results' | null
   timeRemaining: number
   error: string | null
+  playersGameCarts: { [playerId: string]: GameCartItem[] }
+  cartVotingResults: any
 
   // Actions
   joinGame: () => Promise<void>
@@ -21,11 +24,19 @@ interface GameContextType {
   submitOutfit: (outfit: OutfitSelection) => Promise<void>
   submitVote: (playerId: string) => Promise<void>
   
+  // Game Cart Actions
+  addToGameCart: (item: Omit<GameCartItem, 'addedAt'>) => Promise<void>
+  removeFromGameCart: (productId: string) => Promise<void>
+  clearGameCart: () => Promise<void>
+  submitCartVote: (targetPlayerId: string, score: number, comment?: string) => Promise<void>
+  
   // Helpers
   getCurrentPlayer: () => GamePlayer | null
   getOtherPlayers: () => GamePlayer[]
   isGameCreator: () => boolean
   canStartGame: () => boolean
+  getMyCartTotal: () => number
+  getRemainingBudget: () => number
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined)
@@ -37,6 +48,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gamePhase, setGamePhase] = useState<'lobby' | 'styling' | 'voting' | 'results' | null>(null)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [playersGameCarts, setPlayersGameCarts] = useState<{ [playerId: string]: GameCartItem[] }>({})
+  const [cartVotingResults, setCartVotingResults] = useState<any>(null)
   const [roomSubscription, setRoomSubscription] = useState<(() => void) | null>(null)
 
   // Game timer effect
@@ -107,7 +120,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       )
 
       // Subscribe to room updates
-      const unsubscribe = GameMatchmaking.subscribeToRoom(roomId, (room) => {
+      const unsubscribeRoom = GameMatchmaking.subscribeToRoom(roomId, (room) => {
         if (room) {
           setCurrentRoom(room)
           setIsSearching(false)
@@ -128,7 +141,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
       })
 
-      setRoomSubscription(() => unsubscribe)
+      // Subscribe to game carts
+      const unsubscribeCarts = FirebaseGameCartService.subscribeToGameCarts(
+        roomId,
+        (carts) => {
+          setPlayersGameCarts(carts)
+        }
+      )
+
+      setRoomSubscription(() => {
+        unsubscribeRoom()
+        unsubscribeCarts()
+      })
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to join game'
@@ -244,6 +268,85 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Game Cart Functions
+  const addToGameCart = async (item: Omit<GameCartItem, 'addedAt'>) => {
+    if (!user || !currentRoom) return
+    try {
+      await FirebaseGameCartService.addToGameCart(currentRoom.id, user.uid, item)
+      toast({
+        title: "Added to Game Cart!",
+        description: `${item.name} added for $${item.price}`,
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add to cart'
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  }
+
+  const removeFromGameCart = async (productId: string) => {
+    if (!user || !currentRoom) return
+    try {
+      await FirebaseGameCartService.removeFromGameCart(currentRoom.id, user.uid, productId)
+      toast({
+        title: "Removed from Cart",
+        description: "Item removed from your game cart",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to remove from cart'
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  }
+
+  const clearGameCart = async () => {
+    if (!user || !currentRoom) return
+    try {
+      await FirebaseGameCartService.clearGameCart(currentRoom.id, user.uid)
+      toast({
+        title: "Cart Cleared",
+        description: "Your game cart has been cleared",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear cart'
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  }
+
+  const submitCartVote = async (targetPlayerId: string, score: number, comment?: string) => {
+    if (!user || !currentRoom) return
+    try {
+      await FirebaseGameCartService.submitCartVote(
+        currentRoom.id,
+        user.uid,
+        targetPlayerId,
+        score,
+        comment
+      )
+      toast({
+        title: "Vote Submitted!",
+        description: "Your vote has been recorded",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit vote'
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  }
+
   // Helper functions
   const getCurrentPlayer = (): GamePlayer | null => {
     if (!user || !currentRoom) return null
@@ -266,6 +369,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!currentRoom) return false
     const players = Object.values(currentRoom.players)
     return players.length >= 2 && players.every(p => p.ready)
+  }
+
+  const getMyCartTotal = (): number => {
+    if (!user) return 0
+    const cart = playersGameCarts[user.uid] || []
+    return cart.reduce((sum, item) => sum + item.price, 0)
+  }
+
+  const getRemainingBudget = (): number => {
+    if (!user || !currentRoom) return 0
+    const budget = currentRoom.budget || 0
+    return budget - getMyCartTotal()
   }
 
   // Cleanup on unmount
@@ -292,11 +407,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
     submitOutfit,
     submitVote,
 
+    // Cart State
+    playersGameCarts,
+    cartVotingResults,
+
+    // Cart Actions
+    addToGameCart,
+    removeFromGameCart,
+    clearGameCart,
+    submitCartVote,
+
     // Helpers
     getCurrentPlayer,
     getOtherPlayers,
     isGameCreator,
-    canStartGame
+    canStartGame,
+    getMyCartTotal,
+    getRemainingBudget
   }
 
   return (

@@ -2,7 +2,7 @@
 
 export interface GameRoom {
   id: string
-  status: 'waiting' | 'active' | 'finished'
+  status: 'waiting' | 'active' | 'voting' | 'finished'
   theme: string
   budget: number
   maxPlayers: number
@@ -11,7 +11,11 @@ export interface GameRoom {
   createdAt: number
   startTime?: number
   endTime?: number
+  votingStartTime?: number
+  votingEndTime?: number
   timeLimit: number // in minutes
+  votingTimeLimit?: number // in minutes
+  gameCartVotes?: { [voteId: string]: GameCartVote }
 }
 
 export interface GamePlayer {
@@ -24,6 +28,7 @@ export interface GamePlayer {
   votes: number
   hasVoted: boolean
   votedFor?: string // userId they voted for
+  gameCart?: GameCartItem[] // Live cart during game
 }
 
 export interface OutfitSelection {
@@ -39,6 +44,23 @@ export interface OutfitItem {
   price: number
   imageUrl: string
   category: string
+}
+
+export interface GameCartItem {
+  productId: string
+  name: string
+  price: number
+  imageUrl: string
+  category: string
+  addedAt: number
+}
+
+export interface GameCartVote {
+  voterId: string
+  targetPlayerId: string
+  cartScore: number // 1-5 rating
+  comment?: string
+  votedAt: number
 }
 
 export interface GameTheme {
@@ -105,5 +127,6 @@ export const GAME_CONFIG = {
   MIN_PLAYERS: 2,
   TIME_LIMIT_MINUTES: 5,
   VOTING_TIME_MINUTES: 2,
+  CART_VOTING_TIME_MINUTES: 3,
   ROOM_TIMEOUT_MINUTES: 10
 }
