@@ -3,6 +3,7 @@
 import { AuthProvider } from '@/lib/auth-context'
 import { CartProvider } from '@/lib/cart-context'
 import { GameProvider } from '@/lib/game-context'
+import { ProductSharingProvider } from '@/lib/product-sharing-context-new'
 import { Toaster } from '@/components/ui/toaster'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -10,8 +11,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <CartProvider>
         <GameProvider>
-          {children}
-          <Toaster />
+          <ProductSharingProvider>
+            {children}
+            <Toaster />
+          </ProductSharingProvider>
         </GameProvider>
       </CartProvider>
     </AuthProvider>

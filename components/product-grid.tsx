@@ -2,10 +2,11 @@
 
 import { useGame } from '@/lib/game-context'
 import { useCart } from '@/lib/cart-context'
+// import { useProductSharing } from '@/lib/product-sharing-context'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Star, ShoppingCart, Timer } from "lucide-react"
+import { Heart, Star, ShoppingCart, Timer, Share2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from 'react'
 
@@ -88,6 +89,7 @@ interface ProductGridProps {
 export function ProductGrid({ filters }: ProductGridProps) {
 	const { gamePhase, addToGameCart, currentRoom } = useGame?.() || {}
 	const { addToCart } = useCart()
+	// const { setCurrentProduct } = useProductSharing()
 	const [selectedSize, setSelectedSize] = useState<string>('')
 	const [selectedColor, setSelectedColor] = useState<string>('')
 
@@ -168,9 +170,26 @@ export function ProductGrid({ filters }: ProductGridProps) {
 										<h3 className="font-semibold">{product.name}</h3>
 										<p className="text-sm text-muted-foreground">{product.brand}</p>
 									</div>
-									<Button variant="ghost" size="icon">
-										<Heart className="w-5 h-5" />
-									</Button>
+									<div className="flex gap-1">
+										{/* <Button 
+											variant="ghost" 
+											size="icon"
+											onClick={(e) => {
+												e.stopPropagation()
+												setCurrentProduct({
+													id: product.id,
+													name: product.name,
+													price: product.price / 100, // Convert from paise
+													image: product.image
+												})
+											}}
+										>
+											<Share2 className="w-4 h-4" />
+										</Button> */}
+										<Button variant="ghost" size="icon">
+											<Heart className="w-5 h-5" />
+										</Button>
+									</div>
 								</div>
 								<div className="flex items-center gap-2">
 									<div className="flex items-center">
@@ -262,14 +281,32 @@ export function ProductGrid({ filters }: ProductGridProps) {
 								</Badge>
 							</div>
 
-							{/* Wishlist Button */}
-							<Button
-								variant="ghost"
-								size="icon"
-								className="absolute top-2 right-2 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-							>
-								<Heart className="h-4 w-4" />
-							</Button>
+							{/* Action Buttons */}
+							<div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+								{/* <Button
+									variant="ghost"
+									size="icon"
+									className="bg-white/80 hover:bg-white h-8 w-8"
+									onClick={(e) => {
+										e.stopPropagation()
+										setCurrentProduct({
+											id: product.id,
+											name: product.name,
+											price: product.price / 100, // Convert from paise
+											image: product.image
+										})
+									}}
+								>
+									<Share2 className="h-4 w-4" />
+								</Button> */}
+								<Button
+									variant="ghost"
+									size="icon"
+									className="bg-white/80 hover:bg-white h-8 w-8"
+								>
+									<Heart className="h-4 w-4" />
+								</Button>
+							</div>
 
 							{/* Add to Game Cart Button */}
 							{(gamePhase === 'styling' && currentRoom) && (
@@ -285,6 +322,9 @@ export function ProductGrid({ filters }: ProductGridProps) {
 											price: product.price,
 											imageUrl: product.image,
 											category: product.category,
+											quantity: 1,
+											selectedSize: selectedSize || undefined,
+											selectedColor: selectedColor || undefined,
 										})
 									}}
 								>

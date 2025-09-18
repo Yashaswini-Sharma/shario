@@ -13,7 +13,7 @@ export interface Community {
   createdAt: number
   memberCount: number
   maxMembers: number
-  tags: string[]
+  tags?: string[] // Make tags optional to handle legacy data
 }
 
 export interface CommunityMember {
@@ -47,10 +47,29 @@ function generateJoinCode(): string {
 
 // Check if join code is unique
 async function isJoinCodeUnique(code: string): Promise<boolean> {
-  const communitiesRef = ref(realtimeDb, 'communities')
-  const codeQuery = query(communitiesRef, orderByChild('joinCode'), equalTo(code))
-  const snapshot = await get(codeQuery)
-  return !snapshot.exists()
+  try {
+    const communitiesRef = ref(realtimeDb, 'communities')
+    const snapshot = await get(communitiesRef)
+    
+    if (!snapshot.exists()) {
+      return true
+    }
+    
+    const communities = snapshot.val()
+    
+    // Check if any community has this join code
+    for (const communityId in communities) {
+      if (communities[communityId].joinCode === code) {
+        return false
+      }
+    }
+    
+    return true
+  } catch (error) {
+    console.error('Error checking join code uniqueness:', error)
+    // Fallback to allowing the code if there's an error
+    return true
+  }
 }
 
 // Generate unique join code
@@ -118,15 +137,28 @@ export async function joinCommunityByCode(
   try {
     // Find community by join code
     const communitiesRef = ref(realtimeDb, 'communities')
-    const codeQuery = query(communitiesRef, orderByChild('joinCode'), equalTo(joinCode))
-    const snapshot = await get(codeQuery)
+    const snapshot = await get(communitiesRef)
 
     if (!snapshot.exists()) {
-      return { success: false, error: 'Invalid join code' }
+      return { success: false, error: 'No communities found' }
     }
 
-    const communityData = Object.values(snapshot.val())[0] as Community
-    const communityId = Object.keys(snapshot.val())[0]
+    const communities = snapshot.val()
+    let communityData: Community | null = null
+    let communityId: string | null = null
+
+    // Search for community with matching join code
+    for (const id in communities) {
+      if (communities[id].joinCode === joinCode) {
+        communityData = communities[id]
+        communityId = id
+        break
+      }
+    }
+
+    if (!communityData || !communityId) {
+      return { success: false, error: 'Invalid join code' }
+    }
 
     // Check if user is already a member
     const memberRef = ref(realtimeDb, `communityMembers/${communityId}/${userId}`)
@@ -165,18 +197,30 @@ export async function joinCommunityByCode(
 
 // Get public communities
 export async function getPublicCommunities(): Promise<Community[]> {
-  const communitiesRef = ref(realtimeDb, 'communities')
-  const publicQuery = query(communitiesRef, orderByChild('type'), equalTo('public'))
-  const snapshot = await get(publicQuery)
+  try {
+    const communitiesRef = ref(realtimeDb, 'communities')
+    const snapshot = await get(communitiesRef)
 
-  if (!snapshot.exists()) {
+    if (!snapshot.exists()) {
+      return []
+    }
+
+    const communities = snapshot.val()
+    const publicCommunities: Community[] = []
+
+    // Filter for public communities
+    for (const [id, data] of Object.entries(communities)) {
+      const community = data as Community
+      if (community.type === 'public') {
+        publicCommunities.push({ ...community, id })
+      }
+    }
+
+    return publicCommunities
+  } catch (error) {
+    console.error('Error fetching public communities:', error)
     return []
   }
-
-  return Object.entries(snapshot.val()).map(([id, data]) => ({
-    ...(data as Community),
-    id
-  }))
 }
 
 // Get user's communities
@@ -231,8 +275,8 @@ export async function sendMessageToCommunity(
     content,
     timestamp: Date.now(),
     type,
-    pageUrl,
-    pageTitle
+    ...(pageUrl && { pageUrl }),
+    ...(pageTitle && { pageTitle })
   }
 
   await set(messageRef, message)
@@ -334,4 +378,31 @@ export async function isUserMember(communityId: string, userId: string): Promise
   const memberRef = ref(realtimeDb, `communityMembers/${communityId}/${userId}`)
   const snapshot = await get(memberRef)
   return snapshot.exists()
+}
+
+// Share product to community
+export async function shareProductToCommunity(
+  communityId: string,
+  userId: string,
+  userName: string,
+  product: {
+    id: number | string
+    name: string
+    price: number
+    image?: string
+    brand?: string
+    category?: string
+  }
+): Promise<void> {
+  const productMessage = `🛍️ Check out this amazing product!\n\n**${product.name}**\n💰 Price: ₹${product.price?.toFixed(2)}\n${product.brand ? `👔 Brand: ${product.brand}\n` : ''}${product.category ? `🏷️ Category: ${product.category}\n` : ''}\nWhat do you think?`
+  
+  await sendMessageToCommunity(
+    communityId,
+    userId,
+    userName,
+    productMessage,
+    'page_share',
+    `/products/${product.id}`,
+    product.name
+  )
 }

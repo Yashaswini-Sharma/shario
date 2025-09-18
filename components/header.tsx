@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, ShoppingBag, Heart, User, Sparkles, Camera } from "lucide-react"
+import { Search, ShoppingBag, Heart, User, Sparkles, Camera, MessageCircle } from "lucide-react"
 import { useState } from "react"
 import { 
   Dialog,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { useCartCount } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
+import { useSidebar } from "@/components/community-sidebar-wrapper"
 import { ImageSearchResults } from "./image-search-results"
 import {
   NavigationMenu,
@@ -102,6 +103,7 @@ function UserProfile() {
 export function Header() {
   const cartCount = useCartCount()
   const { gamePhase } = useGame()
+  const { toggle: toggleSidebar } = useSidebar()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [searchResults, setSearchResults] = useState<ImageData | null>(null)
   const [showResults, setShowResults] = useState(false)
@@ -176,6 +178,14 @@ export function Header() {
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
+
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Link href="/communities" className="text-sm font-medium px-4 py-2 hover:text-primary transition-colors">
+                        COMMUNITIES
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -208,6 +218,17 @@ export function Header() {
 
             <div className="flex items-center space-x-4">
               <UserProfile />
+
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative" 
+                title="Fashion Communities"
+                onClick={toggleSidebar}
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="sr-only">Communities</span>
+              </Button>
 
               <Link href="/dress-to-impress">
                 <Button variant="ghost" size="sm" className="relative" title="Dress to Impress Game">

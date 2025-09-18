@@ -164,9 +164,9 @@ export default function CommunityPage({ params }: CommunityPageProps) {
                 </div>
               </div>
 
-              {community.tags.length > 0 && (
+              {(community.tags || []).length > 0 && (
                 <div className="flex gap-2 justify-center flex-wrap">
-                  {community.tags.map((tag) => (
+                  {(community.tags || []).map((tag) => (
                     <Badge key={tag} variant="secondary">
                       {tag}
                     </Badge>
@@ -250,9 +250,9 @@ export default function CommunityPage({ params }: CommunityPageProps) {
               </span>
             </div>
             
-            {community.tags.length > 0 && (
+            {(community.tags || []).length > 0 && (
               <div className="flex gap-2 flex-wrap">
-                {community.tags.map((tag) => (
+                {(community.tags || []).map((tag) => (
                   <Badge key={tag} variant="secondary">
                     {tag}
                   </Badge>

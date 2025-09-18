@@ -4,11 +4,12 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Star, ShoppingCart, Timer } from "lucide-react"
-import { getAllProducts, getMensProducts, getWomensProducts, getProductsByCategory } from "@/lib/products-data"
+import { Heart, Star, ShoppingCart, Timer, Share2 } from "lucide-react"
+import { getAllProducts, getProductsByGender, getProductsByCategory } from "@/lib/enhanced-products-data"
 import { Product } from "@/lib/types"
 import { useGame } from '@/lib/game-context'
 import { useCart } from '@/lib/cart-context'
+import { useProductSharing } from '@/lib/product-sharing-context-new'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Convert Product to the expected format for the grid
@@ -56,6 +57,7 @@ export function ProductGrid({
   // Cart functionality
   const { gamePhase, addToGameCart, currentRoom } = useGame?.() || {}
   const { addToCart } = useCart()
+  const { setCurrentProduct } = useProductSharing()
 
   // Determine if we're in game mode with active timer
   const isGameMode = gamePhase === 'styling' && currentRoom?.status === 'active'
@@ -83,17 +85,18 @@ export function ProductGrid({
   }
 
   useEffect(() => {
-    const loadProducts = () => {
+    const loadProducts = async () => {
+      setLoading(true)
       try {
         let rawProducts: Product[] = []
         
         // Get products based on gender filter
         if (gender === 'men') {
-          rawProducts = getMensProducts()
+          rawProducts = await getProductsByGender('men')
         } else if (gender === 'women') {
-          rawProducts = getWomensProducts()
+          rawProducts = await getProductsByGender('women')
         } else {
-          rawProducts = getAllProducts()
+          rawProducts = await getAllProducts()
         }
 
         // Apply search filter
@@ -211,13 +214,28 @@ export function ProductGrid({
                   -{product.discount}%
                 </Badge>
               )}
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Heart className="h-4 w-4" />
-              </Button>
+              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setCurrentProduct({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price / 100, // Convert back from paise
+                    image: product.image
+                  })}
+                  className="h-8 w-8 p-0"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 w-8 p-0"
+                >
+                  <Heart className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">

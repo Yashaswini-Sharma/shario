@@ -3,6 +3,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers'
+import { CommunitySidebarProvider } from '@/components/community-sidebar-wrapper'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <Providers>
-          {children}
+          <CommunitySidebarProvider>
+            {children}
+          </CommunitySidebarProvider>
           <Analytics />
         </Providers>
       </body>
