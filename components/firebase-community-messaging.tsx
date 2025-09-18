@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/lib/auth-context"
+import { ProductMessageRenderer } from "./product-message-renderer"
 import { 
   sendMessageToCommunity, 
   listenToCommunityMessages, 
@@ -321,20 +322,25 @@ export function FirebaseCommunityMessaging({ communityId }: FirebaseCommunityMes
                               {msg.type === 'system' ? (
                                 <div>{msg.content}</div>
                               ) : msg.type === 'page_share' ? (
-                                <div className="space-y-1">
+                                <div className="space-y-2">
                                   <div className="font-medium text-sm">
-                                    📢 Shared a page
+                                    �️ Shared a product
                                   </div>
-                                  <div className="text-sm opacity-90">
-                                    <a
-                                      href={msg.pageUrl}
-                                      className="underline hover:no-underline"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {msg.pageTitle}
-                                    </a>
+                                  <div className="text-sm opacity-90 whitespace-pre-line">
+                                    {msg.content}
                                   </div>
+                                  {msg.pageUrl && (
+                                    <div className="text-xs opacity-70">
+                                      <a
+                                        href={msg.pageUrl}
+                                        className="underline hover:no-underline"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        View Product Details →
+                                      </a>
+                                    </div>
+                                  )}
                                   <div className="text-xs opacity-70 mt-1">
                                     {msg.userName} • {formatTime(msg.timestamp)}
                                   </div>

@@ -394,7 +394,14 @@ export async function shareProductToCommunity(
     category?: string
   }
 ): Promise<void> {
-  const productMessage = `🛍️ Check out this amazing product!\n\n**${product.name}**\n💰 Price: ₹${product.price?.toFixed(2)}\n${product.brand ? `👔 Brand: ${product.brand}\n` : ''}${product.category ? `🏷️ Category: ${product.category}\n` : ''}\nWhat do you think?`
+  const productMessage = `🛍️ **Check out this amazing product!**
+
+**${product.name}**
+💰 **Price**: ₹${product.price?.toFixed(2)}${product.brand ? `\n👔 **Brand**: ${product.brand}` : ''}${product.category ? `\n🏷️ **Category**: ${product.category}` : ''}
+
+${product.image ? `🖼️ **Image**: ${product.image}` : ''}
+
+What do you think about this piece? 💭✨`
   
   await sendMessageToCommunity(
     communityId,

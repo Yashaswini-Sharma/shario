@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { CommunityCreateForm } from "@/components/community-create-form"
+import { CommunityManager } from "@/components/community-manager"
 import { Community, getPublicCommunities, getUserCommunities, joinCommunityByCode } from "@/lib/firebase-community-service"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/hooks/use-toast"
@@ -182,7 +183,7 @@ export default function CommunitiesPage() {
         {/* Main Tabs */}
         <div className="max-w-6xl mx-auto">
           <Tabs defaultValue="public" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="public" className="flex items-center gap-2">
                 <Globe className="h-4 w-4" />
                 Public Communities
@@ -194,6 +195,10 @@ export default function CommunitiesPage() {
               <TabsTrigger value="join" className="flex items-center gap-2">
                 <Hash className="h-4 w-4" />
                 Join with Code
+              </TabsTrigger>
+              <TabsTrigger value="manage" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Manage
               </TabsTrigger>
             </TabsList>
 
@@ -419,6 +424,13 @@ export default function CommunitiesPage() {
                   </Button>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Manage Communities Tab */}
+            <TabsContent value="manage" className="space-y-6">
+              <div className="max-w-2xl mx-auto">
+                <CommunityManager />
+              </div>
             </TabsContent>
           </Tabs>
         </div>

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
+import { getProductPrice } from "@/lib/pricing-utils"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -211,10 +212,10 @@ function StylingPhase() {
       const response = await fetch('/api/dataset?limit=50&gender=Women')
       const data = await response.json()
       if (data.items) {
-        // Add random prices to items
+        // Add consistent prices to items
         const itemsWithPrices = data.items.map((item: any) => ({
           ...item,
-          price: Math.floor(Math.random() * 1500) + 500, // $5-20 range
+          price: getProductPrice(item), // Use consistent pricing
         }))
         setItems(itemsWithPrices)
       }

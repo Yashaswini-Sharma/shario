@@ -5,9 +5,11 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ProcessedFashionItem } from "@/lib/huggingface-dataset"
-import { Upload, ShoppingCart, Gamepad2 } from "lucide-react"
+import { Upload, ShoppingCart, Gamepad2, Share2 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { useGame } from "@/lib/game-context"
+import { useCommunity } from "@/lib/community-context"
+import { getProductPrice, formatPrice } from "@/lib/pricing-utils"
 import { useState } from "react"
 import { toast } from "@/hooks/use-toast"
 
@@ -19,7 +21,12 @@ interface DatasetProductCardProps {
 export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
   const { addToCart } = useCart()
   const { addToGameCart, currentRoom, gamePhase } = useGame()
+  const { shareProductToCommunity, currentCommunity } = useCommunity()
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
+
+  // Get consistent price for this product
+  const productPrice = getProductPrice(item)
 
   // Determine if we're in game mode
   const isInGame = currentRoom && (gamePhase === 'styling' || gamePhase === 'lobby')
@@ -35,7 +42,7 @@ export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
           productId: item.id,
           name: item.name,
           imageUrl: item.image, // Fixed property name
-          price: Math.floor(Math.random() * 5000) + 1000, // Random price between 1000-6000
+          price: productPrice, // Use consistent pricing
           category: item.articleType, // Using articleType as category
           quantity: 1,
           selectedColor: item.color
@@ -63,6 +70,34 @@ export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
       })
     } finally {
       setIsAddingToCart(false)
+    }
+  }
+
+  const handleShareProduct = async (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card onClick
+    
+    if (!currentCommunity) {
+      toast({
+        title: "No Community",
+        description: "Join a community first to share products.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSharing(true)
+
+    try {
+      await shareProductToCommunity(item)
+    } catch (error) {
+      console.error('Error sharing product:', error)
+      toast({
+        title: "Error",
+        description: "Failed to share product. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSharing(false)
     }
   }
 
@@ -115,7 +150,7 @@ export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
               {/* Price Display */}
               <div className="flex justify-between text-sm font-medium text-primary mb-2">
                 <span>Price:</span>
-                <span>₹{Math.floor(Math.random() * 5000) + 1000}</span>
+                <span>{formatPrice(productPrice)}</span>
               </div>
               
               <div className="flex justify-between text-xs text-muted-foreground">
@@ -151,8 +186,9 @@ export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
         </CardFooter>
       </div>
       
-      {/* Add to Cart Button - Outside of clickable area */}
-      <div className="px-4 pb-4">
+      {/* Action Buttons - Outside of clickable area */}
+      <div className="px-4 pb-4 space-y-2">
+        {/* Add to Cart Button */}
         <Button
           onClick={handleAddToCart}
           disabled={isAddingToCart}
@@ -176,6 +212,32 @@ export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
             <div className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
               Add to Cart
+            </div>
+          )}
+        </Button>
+
+        {/* Share Button */}
+        <Button
+          onClick={handleShareProduct}
+          disabled={isSharing}
+          variant="outline"
+          className="w-full"
+          size="sm"
+        >
+          {isSharing ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Sharing...
+            </div>
+          ) : currentCommunity ? (
+            <div className="flex items-center gap-2">
+              <Share2 className="w-4 h-4" />
+              Share to {currentCommunity.name}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Share2 className="w-4 h-4" />
+              Share to Community
             </div>
           )}
         </Button>

@@ -1,4 +1,5 @@
 import { Product } from './types'
+import { getProductPrice } from './pricing-utils'
 
 // Hugging Face dataset interfaces
 export interface HuggingFaceDatasetRow {
@@ -81,8 +82,13 @@ export class HuggingFaceDatasetService {
       'Footwear': 'Shoes'
     }
 
-    // Generate price based on article type and randomization for demo
-    const basePrice = this.generatePrice(data.articleType, data.masterCategory)
+    // Generate consistent price based on product category
+    const basePrice = getProductPrice({
+      articleType: data.articleType,
+      category: data.masterCategory,
+      subcategory: data.subCategory,
+      gender: data.gender
+    })
     const discount = Math.random() > 0.7 ? Math.random() * 0.3 + 0.1 : 0 // 30% chance of discount
     const originalPrice = discount > 0 ? basePrice : undefined
     const finalPrice = discount > 0 ? basePrice * (1 - discount) : basePrice
