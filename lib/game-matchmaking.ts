@@ -338,13 +338,16 @@ export class GameMatchmaking {
    */
   static async markPlayerReady(roomId: string, userId: string): Promise<void> {
     try {
+      console.log(`🎯 Marking player ${userId} as ready in room ${roomId}`)
       const playerRef = ref(realtimeDb, `gameRooms/${roomId}/players/${userId}`)
       await update(playerRef, { ready: true })
+      console.log(`✅ Successfully marked player ${userId} as ready`)
 
       // Check if all players are ready
+      console.log(`🔍 Checking if game should start...`)
       await this.checkGameStart(roomId)
     } catch (error) {
-      console.error('Error marking player ready:', error)
+      console.error(`❌ Error marking player ${userId} ready in room ${roomId}:`, error)
       throw error
     }
   }

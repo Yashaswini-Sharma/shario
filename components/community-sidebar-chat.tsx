@@ -409,29 +409,41 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
 
   return (
     <>
-      {/* Sidebar Chat Panel */}
+      {/* Professional Sidebar Chat Panel */}
       {isOpen && (
-        <div className="fixed inset-y-0 right-0 z-[9998] w-72 min-w-72 max-w-72 bg-white border-l shadow-xl">
+        <div className="fixed inset-y-0 right-0 z-[9998] w-72 min-w-72 max-w-[18vw] bg-white border-l border-gray-200 shadow-2xl overflow-hidden">
           <div className="flex flex-col h-full w-full">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-purple-50">
-              <div className="flex items-center gap-2">
+            {/* Professional Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
                 {selectedCommunity && !showCommunityList && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={backToCommunityList}
+                    className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full transition-all duration-200 flex-shrink-0"
                   >
-                    <ArrowLeft className="h-4 w-4" />
+                    <ArrowLeft className="h-4 w-4 text-gray-600" />
                   </Button>
                 )}
-                <MessageCircle className="h-5 w-5 text-purple-600" />
-                <span className="font-semibold text-purple-800">
-                  {selectedCommunity && !showCommunityList 
-                    ? selectedCommunity.name 
-                    : 'Communities'
-                  }
-                </span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                    <MessageCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-gray-900 text-sm leading-tight truncate">
+                      {selectedCommunity && !showCommunityList 
+                        ? selectedCommunity.name 
+                        : 'Communities'
+                      }
+                    </span>
+                    {selectedCommunity && !showCommunityList && (
+                      <span className="text-xs text-gray-500 truncate">
+                        {selectedCommunity.memberCount} members • Active
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               
               <div className="flex items-center gap-2">
@@ -487,31 +499,46 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
               </div>
             </div>
 
-            {/* Content */}
+            {/* Scrollable Content Area with Beautiful Scrollbar */}
             <div className="flex-1 overflow-hidden">
-              {!user ? (
-                <div className="p-4 text-center">
-                  <p className="text-gray-600 mb-4">Please sign in to chat with communities</p>
-                  <Link href="/sign-in">
-                    <Button className="w-full">Sign In</Button>
-                  </Link>
-                </div>
-              ) : userCommunities.length === 0 ? (
-                <div className="p-4 text-center">
-                  <p className="text-gray-600 mb-4">You haven't joined any communities yet</p>
-                  <Link href="/communities">
-                    <Button className="w-full">
-                      <Users className="h-4 w-4 mr-2" />
-                      Browse Communities
-                    </Button>
-                  </Link>
-                </div>
+              <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
+                {!user ? (
+                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                    <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg mb-6">
+                      <Users className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Join the Conversation</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed text-sm">
+                      Sign in to connect with fashion communities and share your style inspiration.
+                    </p>
+                    <Link href="/sign-in">
+                      <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0 shadow-lg px-6 py-2 rounded-xl font-medium transition-all duration-200">
+                        Sign In
+                      </Button>
+                    </Link>
+                  </div>
+                ) : userCommunities.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                    <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg mb-6">
+                      <MessageCircle className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">No Communities Yet</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed text-sm">
+                      Discover and join fashion communities to start chatting with like-minded enthusiasts.
+                    </p>
+                    <Link href="/communities">
+                      <Button className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white border-0 shadow-lg px-6 py-2 rounded-xl font-medium transition-all duration-200">
+                        <Users className="h-4 w-4 mr-2" />
+                        Browse Communities
+                      </Button>
+                    </Link>
+                  </div>
               ) : showCommunityList ? (
-                /* Community List */
-                <ScrollArea className="h-full">
+                /* Community List with Beautiful Scrollbar */
+                <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-blue-300 hover:scrollbar-thumb-blue-400 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
                   <div className="p-4 space-y-3">
                     {userCommunities.map((community) => (
-                      <Card key={community.id} className="cursor-pointer hover:bg-gray-50" onClick={() => selectCommunity(community)}>
+                      <Card key={community.id} className="cursor-pointer hover:bg-gray-50 transition-colors duration-200" onClick={() => selectCommunity(community)}>
                         <CardContent className="p-3">
                           <div className="flex items-center justify-between">
                             <div>
@@ -526,20 +553,27 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                       </Card>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
               ) : (
-                /* Chat Interface */
+                /* Chat Interface with Beautiful Scrollbar */
                 <div className="flex flex-col h-full">
-                  {/* Messages */}
-                  <ScrollArea className="flex-1 p-4">
+                  {/* Messages with Beautiful Scrollbar */}
+                  <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-track-gray-50 scrollbar-thumb-indigo-300 hover:scrollbar-thumb-indigo-400 scrollbar-thumb-rounded-full scrollbar-track-rounded-full">
                     <div className="space-y-3 w-full">
                       {messages.map((message) => (
-                        <div key={message.id} className="bg-gray-50 rounded-lg p-3 w-full max-w-full break-words">
-                          <div className="flex items-center justify-between mb-1 w-full">
-                            <span className="font-medium text-sm text-purple-800 truncate max-w-[120px]">
-                              {message.userName}
-                            </span>
-                            <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                        <div key={message.id} className="bg-white rounded-xl p-3 max-w-[240px] break-words shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between mb-2 w-full">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-xs font-semibold">
+                                  {message.userName.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <span className="font-medium text-xs text-gray-900 truncate">
+                                {message.userName}
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-400 flex-shrink-0 ml-2 bg-gray-50 px-2 py-1 rounded-full">
                               {formatMessageTime(message.timestamp)}
                             </span>
                           </div>
@@ -651,7 +685,7 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                       ))}
                       <div ref={messagesEndRef} />
                     </div>
-                  </ScrollArea>
+                  </div>
 
                   {/* Product Sharing Alert */}
                   {currentProduct && (
@@ -778,16 +812,16 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                     </div>
                   )}
 
-                  {/* Message Input */}
-                  <div className="p-4 border-t w-full max-w-full">
+                  {/* Professional Message Input - Fixed at Bottom */}
+                  <div className="p-4 border-t bg-white w-full max-w-full flex-shrink-0 shadow-lg">
                     {!selectedImage && (
-                      <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                        <Paperclip className="h-3 w-3" />
-                        Click the 📎 button to attach images
+                      <div className="text-xs text-gray-500 mb-3 flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+                        <Paperclip className="h-3 w-3 text-gray-400" />
+                        <span>Click 📎 to attach images or type a message</span>
                       </div>
                     )}
-                    <div className="flex gap-2 w-full">
-                      <div className="flex gap-1">
+                    <div className="flex gap-3 w-full">
+                      <div className="flex gap-2">
                         <input
                           ref={fileInputRef}
                           type="file"
@@ -801,10 +835,10 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                           size="sm"
                           onClick={() => fileInputRef.current?.click()}
                           disabled={!!selectedImage}
-                          className="flex-shrink-0 hover:bg-purple-50 border-purple-200"
+                          className="flex-shrink-0 hover:bg-blue-50 border-blue-200 transition-all duration-200 rounded-lg"
                           title="Attach image"
                         >
-                          <Paperclip className="h-4 w-4 text-purple-600" />
+                          <Paperclip className="h-4 w-4 text-blue-600" />
                         </Button>
                       </div>
                       <Input
@@ -812,13 +846,13 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        className="flex-1 min-w-0"
+                        className="flex-1 min-w-0 border-gray-200 focus:border-blue-300 focus:ring-blue-100 transition-all duration-200 rounded-lg"
                       />
                       <Button
                         onClick={selectedImage ? handleSendImage : handleSendMessage}
                         disabled={selectedImage ? isUploadingImage : !newMessage.trim()}
                         size="sm"
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0 shadow-sm transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {selectedImage ? (
                           isUploadingImage ? (
@@ -834,6 +868,7 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                   </div>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>

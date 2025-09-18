@@ -223,3 +223,90 @@
 .btn-glow:hover::before {
   left: 100%;
 }
+
+/* Beautiful Custom Scrollbars */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 100px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 100px;
+  border: 1px solid #f1f5f9;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Gray scrollbar variant */
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb:hover,
+.hover\:scrollbar-thumb-gray-400:hover::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+}
+
+/* Blue scrollbar variant */
+.scrollbar-track-gray-50::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+
+.scrollbar-thumb-blue-300::-webkit-scrollbar-thumb {
+  background: #93c5fd;
+}
+
+.scrollbar-thumb-blue-300::-webkit-scrollbar-thumb:hover,
+.hover\:scrollbar-thumb-blue-400:hover::-webkit-scrollbar-thumb {
+  background: #60a5fa;
+}
+
+/* Indigo scrollbar variant */
+.scrollbar-thumb-indigo-300::-webkit-scrollbar-thumb {
+  background: #a5b4fc;
+}
+
+.scrollbar-thumb-indigo-300::-webkit-scrollbar-thumb:hover,
+.hover\:scrollbar-thumb-indigo-400:hover::-webkit-scrollbar-thumb {
+  background: #818cf8;
+}
+
+/* Rounded scrollbar styles */
+.scrollbar-thumb-rounded-full::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+}
+
+.scrollbar-track-rounded-full::-webkit-scrollbar-track {
+  border-radius: 100px;
+}
+
+/* Smooth scrolling behavior */
+.scrollbar-thin {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar with hover effects and transitions */
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  transition: background-color 0.2s ease-in-out;
+}

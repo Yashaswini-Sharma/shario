@@ -199,9 +199,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // Mark player as ready
   const markReady = async () => {
-    if (!user || !currentRoom) return
+    if (!user || !currentRoom) {
+      console.error('❌ Cannot mark ready: missing user or room', { user: !!user, currentRoom: !!currentRoom })
+      toast({
+        title: "Error",
+        description: "Unable to mark as ready. Please try refreshing the page.",
+        variant: "destructive"
+      })
+      return
+    }
 
     try {
+      console.log('🎯 Marking player as ready...', { roomId: currentRoom.id, userId: user.uid })
       await GameMatchmaking.markPlayerReady(currentRoom.id, user.uid)
       
       toast({
@@ -210,12 +219,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       })
 
     } catch (err) {
+      console.error('❌ Error marking ready:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to mark ready'
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive"
       })
+      throw err // Re-throw to let the button handle it too
     }
   }
 

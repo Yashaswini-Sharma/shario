@@ -36,6 +36,7 @@ import Link from 'next/link'
 
 function GameLobby() {
   const { currentRoom, markReady, leaveGame, getCurrentPlayer, getOtherPlayers, canStartGame } = useGame()
+  const { user } = useAuth()
   const [isAnimating, setIsAnimating] = useState(false)
   
   if (!currentRoom) return null
@@ -45,13 +46,78 @@ function GameLobby() {
   const allPlayers = Object.values(currentRoom.players)
 
   const handleMarkReady = async () => {
-    setIsAnimating(true)
-    setTimeout(() => setIsAnimating(false), 1000)
-    await markReady()
+    if (!user) {
+      toast({
+        title: "Please Sign In",
+        description: "You need to sign in to play the game.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!currentRoom) {
+      toast({
+        title: "No Game Room",
+        description: "Please join a game room first.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      setIsAnimating(true)
+      await markReady()
+      toast({
+        title: "Success!",
+        description: "You're ready to style! Waiting for other players...",
+      })
+    } catch (error) {
+      console.error('Error marking ready:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to mark as ready. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setTimeout(() => setIsAnimating(false), 1000)
+    }
+  }
+
+  const handleLeaveGame = async () => {
+    try {
+      console.log('🚪 Leaving game...', { roomId: currentRoom?.id, userId: user?.uid })
+      await leaveGame()
+      console.log('✅ Successfully left game!')
+      toast({
+        title: "Left Arena",
+        description: "You've left the fashion arena.",
+      })
+    } catch (error) {
+      console.error('❌ Error leaving game:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to leave game. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
+      {/* Status Debug Info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-medium text-blue-900 mb-2">Game Status:</h4>
+        <div className="text-sm text-blue-800 space-y-1">
+          <p>Player: {user?.email || 'Not signed in'} | Ready: {currentPlayer?.ready ? '✅' : '❌'}</p>
+          <p>Room: {currentRoom?.id} | Players: {allPlayers.length}/{currentRoom.maxPlayers}</p>
+          <p>Ready Players: {allPlayers.filter(p => p.ready).length}</p>
+          <p>markReady function: {typeof markReady}</p>
+          <p>Current User ID: {user?.uid}</p>
+          <p>Current Player User ID: {currentPlayer?.userId}</p>
+          <p>User Match: {user?.uid === currentPlayer?.userId ? '✅' : '❌'}</p>
+        </div>
+      </div>
+
       {/* Game Info Header with Enhanced Design */}
       <Card className="relative overflow-hidden bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 border-0 shadow-2xl transform hover:scale-[1.02] transition-all duration-500">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -202,36 +268,49 @@ function GameLobby() {
         </CardContent>
       </Card>
 
-      {/* Enhanced Action Buttons */}
+      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4">
-        {!currentPlayer?.ready ? (
-          <Button 
-            onClick={handleMarkReady} 
-            className={`flex-1 h-16 text-lg font-bold bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 border-0 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 ${isAnimating ? 'animate-bounce' : ''}`}
-            disabled={isAnimating}
-          >
-            {isAnimating ? (
-              <>
-                <Loader2 className="h-6 w-6 mr-3 animate-spin" />
-                Styling Up...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-6 w-6 mr-3" />
-                I'm Ready to Style! ✨
-              </>
-            )}
-          </Button>
-        ) : (
-          <Button disabled className="flex-1 h-16 text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 border-0 rounded-2xl shadow-xl opacity-75">
-            <Heart className="h-6 w-6 mr-3 animate-pulse" />
-            Ready! Waiting for others...
-          </Button>
-        )}
+        <Button 
+          onClick={(e) => {
+            console.log('🔥 READY BUTTON CLICKED!', e)
+            e.preventDefault()
+            e.stopPropagation()
+            handleMarkReady()
+          }} 
+          onMouseDown={(e) => {
+            console.log('👆 Button mouse down')
+            e.preventDefault()
+          }}
+          onMouseUp={() => console.log('👆 Button mouse up')}
+          className={`flex-1 h-16 text-lg font-bold bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 border-0 rounded-2xl shadow-2xl transform hover:scale-105 transition-all duration-300 text-white ${isAnimating ? 'animate-bounce' : ''}`}
+          disabled={isAnimating}
+          type="button"
+          style={{ 
+            zIndex: 1000,
+            position: 'relative',
+            pointerEvents: 'all'
+          }}
+        >
+          {isAnimating ? (
+            <>
+              <Loader2 className="h-6 w-6 mr-3 animate-spin" />
+              Styling Up...
+            </>
+          ) : currentPlayer?.ready ? (
+            <>
+              <Heart className="h-6 w-6 mr-3 animate-pulse" />
+              Ready! Waiting for others...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-6 w-6 mr-3" />
+              I'm Ready to Style! ✨
+            </>
+          )}
+        </Button>
         
         <Button 
-          variant="outline" 
-          onClick={leaveGame} 
+          onClick={handleLeaveGame} 
           className="h-16 px-8 text-lg font-medium bg-white/80 hover:bg-red-50 border-2 border-gray-300 hover:border-red-300 rounded-2xl transition-all duration-300 hover:shadow-lg"
         >
           <Target className="h-5 w-5 mr-2" />
