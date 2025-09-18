@@ -160,7 +160,7 @@ export function VotingCard({
           <div className="flex justify-between text-sm">
             <span>Budget Usage:</span>
             <span className="font-semibold">
-              ${design.totalCost} / ${contestBudget} ({budgetUsagePercentage.toFixed(1)}%)
+              ${design.totalCost} / ₹{contestBudget} ({budgetUsagePercentage.toFixed(1)}%)
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">

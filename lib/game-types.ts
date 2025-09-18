@@ -123,7 +123,7 @@ export const GAME_THEMES: GameTheme[] = [
   }
 ]
 
-export const BUDGET_OPTIONS = [50, 75, 100, 125, 150, 200]
+export const BUDGET_OPTIONS = [4250, 6375, 8500, 10625, 12750, 17000] // Converted to rupees (USD * 85)
 
 export const GAME_CONFIG = {
   MAX_PLAYERS: 4,

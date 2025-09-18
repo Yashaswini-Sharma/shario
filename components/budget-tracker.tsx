@@ -51,19 +51,19 @@ export function BudgetTracker({ budget, selectedItems, className = '' }: BudgetT
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Spent</span>
             <span className={`font-bold ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
-              ${totalSpent.toFixed(2)}
+              ₹{totalSpent.toFixed(2)}
             </span>
           </div>
           
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Budget</span>
-            <span className="font-medium">${budget.toFixed(2)}</span>
+            <span className="font-medium">₹{budget.toFixed(2)}</span>
           </div>
           
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Remaining</span>
             <span className={`font-bold ${remaining < 0 ? 'text-red-600' : 'text-blue-600'}`}>
-              ${remaining.toFixed(2)}
+              ₹{remaining.toFixed(2)}
             </span>
           </div>
         </div>
@@ -123,7 +123,7 @@ export function BudgetTracker({ budget, selectedItems, className = '' }: BudgetT
             <div>
               <p className="text-sm font-medium text-red-800">Budget Exceeded!</p>
               <p className="text-xs text-red-600">
-                Remove items worth ${(totalSpent - budget).toFixed(2)} to continue
+                Remove items worth ₹{(totalSpent - budget).toFixed(2)} to continue
               </p>
             </div>
           </div>
@@ -135,7 +135,7 @@ export function BudgetTracker({ budget, selectedItems, className = '' }: BudgetT
             <div>
               <p className="text-sm font-medium text-yellow-800">Almost at budget limit</p>
               <p className="text-xs text-yellow-600">
-                Only ${remaining.toFixed(2)} remaining
+                Only ₹{remaining.toFixed(2)} remaining
               </p>
             </div>
           </div>

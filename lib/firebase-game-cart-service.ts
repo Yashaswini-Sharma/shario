@@ -47,7 +47,7 @@ export class FirebaseGameCartService {
       const room = roomSnapshot.val()
       
       if (currentTotal + item.price > room.budget) {
-        throw new Error(`Adding this item would exceed your budget of $${room.budget}`)
+        throw new Error(`Adding this item would exceed your budget of ₹${room.budget}`)
       }
       
       const newCartItem: GameCartItem = {
@@ -171,8 +171,8 @@ export class FirebaseGameCartService {
         voterId,
         targetPlayerId,
         cartScore,
-        comment,
-        votedAt: Date.now()
+        votedAt: Date.now(),
+        ...(comment && { comment }) // Only include comment if it exists
       }
       
       const voteRef = push(ref(realtimeDb, `gameRooms/${roomId}/gameCartVotes`))
@@ -181,6 +181,61 @@ export class FirebaseGameCartService {
     } catch (error) {
       console.error('Error submitting cart vote:', error)
       throw error
+    }
+  }
+  
+  /**
+   * Mark a player as having completed all their voting and check for game completion
+   */
+  static async markVotingComplete(roomId: string, voterId: string): Promise<void> {
+    try {
+      // Mark the voter as having voted
+      const voterRef = ref(realtimeDb, `gameRooms/${roomId}/players/${voterId}`)
+      await update(voterRef, { hasVoted: true })
+      
+      // Check if all players have completed voting
+      await this.checkVotingCompletion(roomId)
+      
+    } catch (error) {
+      console.error('Error marking voting complete:', error)
+      throw error
+    }
+  }
+  
+  /**
+   * Check if all players have completed voting and transition to results phase
+   */
+  static async checkVotingCompletion(roomId: string): Promise<void> {
+    try {
+      // Get current room state
+      const roomRef = ref(realtimeDb, `gameRooms/${roomId}`)
+      const roomSnapshot = await get(roomRef)
+      
+      if (!roomSnapshot.exists()) return
+      
+      const room = roomSnapshot.val()
+      const players = Object.values(room.players || {}) as any[]
+      
+      // Check if all players have voted
+      // All players in the room should vote (not just those with outfits)
+      const allPlayersInRoom = players
+      const playersWhoVoted = allPlayersInRoom.filter(p => p.hasVoted === true)
+      
+      console.log(`🗳️ Voting progress in room ${roomId}: ${playersWhoVoted.length}/${allPlayersInRoom.length} players voted`)
+      
+      // End voting when ALL players in room have voted
+      if (playersWhoVoted.length >= allPlayersInRoom.length && allPlayersInRoom.length >= 1) {
+        // Transition to finished status to trigger results phase
+        await update(roomRef, {
+          status: 'finished',
+          votingEndTime: Date.now()
+        })
+        
+        console.log(`🏆 All players voted in room ${roomId}, transitioning to results`)
+      }
+      
+    } catch (error) {
+      console.error('Error checking voting completion:', error)
     }
   }
   

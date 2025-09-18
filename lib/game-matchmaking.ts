@@ -302,9 +302,30 @@ export class GameMatchmaking {
       if (newPlayerCount === 0) {
         // Remove empty room
         await remove(roomRef)
+        console.log(`🗑️ Room ${roomId} destroyed - no players remaining`)
       } else {
         // Update player count
         await update(roomRef, { currentPlayers: newPlayerCount })
+        
+        // If this is a finished game and most players left, clean it up
+        if (room.status === 'finished' && newPlayerCount === 1) {
+          console.log(`🧹 Cleaning up finished room ${roomId} with only 1 player remaining`)
+          // Set a timer to clean up the room after 30 seconds if no new players join
+          setTimeout(async () => {
+            try {
+              const currentSnapshot = await get(roomRef)
+              if (currentSnapshot.exists()) {
+                const currentRoom = currentSnapshot.val() as GameRoom
+                if (currentRoom.currentPlayers <= 1 && currentRoom.status === 'finished') {
+                  await remove(roomRef)
+                  console.log(`🗑️ Auto-cleaned finished room ${roomId}`)
+                }
+              }
+            } catch (error) {
+              console.error('Error auto-cleaning room:', error)
+            }
+          }, 30000) // 30 seconds delay
+        }
       }
 
     } catch (error) {
@@ -388,9 +409,51 @@ export class GameMatchmaking {
         outfit,
         ready: true // Mark as ready for voting phase
       })
+      
+      // Check if all players have submitted outfits
+      await this.checkVotingStart(roomId)
     } catch (error) {
       console.error('Error submitting outfit:', error)
       throw error
+    }
+  }
+  
+  /**
+   * Check if all players have submitted outfits and start voting phase
+   */
+  static async checkVotingStart(roomId: string): Promise<void> {
+    try {
+      const roomRef = ref(realtimeDb, `gameRooms/${roomId}`)
+      const snapshot = await get(roomRef)
+
+      if (!snapshot.exists()) return
+
+      const room = snapshot.val() as GameRoom
+      const players = Object.values(room.players)
+      
+      // Check if all players have submitted outfits
+      const allSubmitted = players.every(player => player.outfit)
+      
+      if (allSubmitted && players.length >= GAME_CONFIG.MIN_PLAYERS) {
+        // Start voting phase
+        await update(roomRef, {
+          status: 'voting',
+          votingStartTime: Date.now(),
+          votingEndTime: Date.now() + (GAME_CONFIG.CART_VOTING_TIME_MINUTES * 60 * 1000)
+        })
+        
+        // Reset hasVoted status for all players
+        const updates: { [key: string]: any } = {}
+        players.forEach(player => {
+          updates[`players/${player.userId}/hasVoted`] = false
+        })
+        
+        await update(roomRef, updates)
+        
+        console.log(`🗳️ All outfits submitted in room ${roomId}, starting voting phase`)
+      }
+    } catch (error) {
+      console.error('Error checking voting start:', error)
     }
   }
 

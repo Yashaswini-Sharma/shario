@@ -29,6 +29,7 @@ interface GameContextType {
   removeFromGameCart: (productId: string) => Promise<void>
   clearGameCart: () => Promise<void>
   submitCartVote: (targetPlayerId: string, score: number, comment?: string) => Promise<void>
+  markAllVotingComplete: () => Promise<void>
   
   // Helpers
   getCurrentPlayer: () => GamePlayer | null
@@ -80,15 +81,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (currentRoom.status === 'waiting') {
       setGamePhase('lobby')
     } else if (currentRoom.status === 'active') {
-      // Check if all players submitted outfits
-      const players = Object.values(currentRoom.players)
-      const allSubmitted = players.every(p => p.outfit)
-      
-      if (allSubmitted) {
-        setGamePhase('voting')
-      } else {
-        setGamePhase('styling')
-      }
+      setGamePhase('styling')
+    } else if (currentRoom.status === 'voting') {
+      setGamePhase('voting')
     } else if (currentRoom.status === 'finished') {
       setGamePhase('results')
     }
@@ -346,6 +341,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
       })
     }
   }
+  
+  // Add a method to mark all voting as complete
+  const markAllVotingComplete = async () => {
+    if (!user || !currentRoom) return
+    try {
+      await FirebaseGameCartService.markVotingComplete(currentRoom.id, user.uid)
+    } catch (err) {
+      console.error('Error marking voting complete:', err)
+      throw err
+    }
+  }
 
   // Helper functions
   const getCurrentPlayer = (): GamePlayer | null => {
@@ -416,6 +422,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     removeFromGameCart,
     clearGameCart,
     submitCartVote,
+    markAllVotingComplete,
 
     // Helpers
     getCurrentPlayer,
