@@ -5,3 +5,4 @@ sentence-transformers
 Pillow
 faiss-cpu
 numpy
+flask-cors

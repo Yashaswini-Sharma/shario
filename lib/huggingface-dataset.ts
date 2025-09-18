@@ -27,6 +27,7 @@ export interface ProcessedFashionItem {
   usage: string;
   year: number;
   articleType: string;
+  isUploaded?: boolean; // Added for uploaded products
 }
 
 // Category mapping based on common fashion categories

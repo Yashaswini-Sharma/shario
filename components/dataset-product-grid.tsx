@@ -53,7 +53,7 @@ export function DatasetProductGrid({ gender, category, initialLimit = 24 }: Data
       const result = await response.json()
 
       if (result.success) {
-        setItems(result.data)
+        setItems(result.products || result.data) // Support both formats
       } else {
         throw new Error(result.error || 'Failed to load data')
       }
