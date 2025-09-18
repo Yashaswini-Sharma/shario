@@ -22,6 +22,7 @@ try:
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
+    genai = None
 
 # ----------------------  Core Search Engine  ----------------------
 class SearchEngine:
@@ -44,7 +45,10 @@ class SearchEngine:
         self.clip_model = CLIPModel.from_pretrained(
             "openai/clip-vit-base-patch32"
         ).to(self.device)
-        self.clip_proc = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        self.clip_proc = CLIPProcessor.from_pretrained(
+            "openai/clip-vit-base-patch32", 
+            use_fast=True
+        )
 
         # Gemini
         key = gemini_key or os.environ.get("GOOGLE_API_KEY")
@@ -52,7 +56,7 @@ class SearchEngine:
         self.gemini_key = key
 
         if self.use_gemini:
-            if genai is None:
+            if not GEMINI_AVAILABLE or genai is None:
                 raise ImportError("google-generativeai library not installed.")
             genai.configure(api_key=key)
             print("[INFO] Gemini API configured successfully.")
