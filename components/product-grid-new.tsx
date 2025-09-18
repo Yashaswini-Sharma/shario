@@ -4,9 +4,12 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Heart, Star } from "lucide-react"
+import { Heart, Star, ShoppingCart, Timer } from "lucide-react"
 import { getAllProducts, getMensProducts, getWomensProducts, getProductsByCategory } from "@/lib/products-data"
 import { Product } from "@/lib/types"
+import { useGame } from '@/lib/game-context'
+import { useCart } from '@/lib/cart-context'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Convert Product to the expected format for the grid
 function convertProduct(product: Product) {
@@ -49,6 +52,35 @@ export function ProductGrid({
 }: ProductGridProps) {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Cart functionality
+  const { gamePhase, addToGameCart, currentRoom } = useGame?.() || {}
+  const { addToCart } = useCart()
+
+  // Determine if we're in game mode with active timer
+  const isGameMode = gamePhase === 'styling' && currentRoom?.status === 'active'
+
+  const handleAddToCart = async (product: any) => {
+    if (isGameMode && addToGameCart) {
+      await addToGameCart({
+        productId: product.id.toString(),
+        name: product.name,
+        price: product.price,
+        imageUrl: product.image,
+        category: product.category,
+        quantity: 1,
+        selectedSize: product.selectedSize,
+        selectedColor: product.selectedColor,
+      })
+    } else if (addToCart) {
+      await addToCart(
+        product.id.toString(),
+        1,
+        product.selectedColor,
+        product.selectedSize
+      )
+    }
+  }
 
   useEffect(() => {
     const loadProducts = () => {
@@ -212,13 +244,61 @@ export function ProductGrid({
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>Size: {product.size}</span>
-                <span>Color: {product.color}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={product.selectedSize} onValueChange={(value) => {
+                  const updatedProducts = products.map(p => 
+                    p.id === product.id ? {...p, selectedSize: value} : p
+                  )
+                  setProducts(updatedProducts)
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {product.sizes?.map((size: string) => (
+                      <SelectItem key={size} value={size}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={product.selectedColor} onValueChange={(value) => {
+                  const updatedProducts = products.map(p => 
+                    p.id === product.id ? {...p, selectedColor: value} : p
+                  )
+                  setProducts(updatedProducts)
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {product.colors?.map((color: string) => (
+                      <SelectItem key={color} value={color}>
+                        {color}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Button className="w-full" size="sm">
-                Add to Cart
+              <Button 
+                className="w-full" 
+                size="sm"
+                onClick={() => handleAddToCart(product)}
+                variant={isGameMode ? "secondary" : "default"}
+              >
+                {isGameMode ? (
+                  <>
+                    <Timer className="w-4 h-4 mr-2" />
+                    Add to Game Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

@@ -52,6 +52,9 @@ export interface GameCartItem {
   price: number
   imageUrl: string
   category: string
+  quantity: number
+  selectedSize?: string
+  selectedColor?: string
   addedAt: number
 }
 
