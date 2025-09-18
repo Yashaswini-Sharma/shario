@@ -30,9 +30,19 @@ export interface CommunityMessage {
   userName: string
   content: string
   timestamp: number
-  type: 'message' | 'page_share' | 'system'
+  type: 'message' | 'page_share' | 'system' | 'image' | 'product_share'
   pageUrl?: string
   pageTitle?: string
+  imageUrl?: string
+  imageName?: string
+  productData?: {
+    id: number | string
+    name: string
+    price: number
+    image?: string
+    brand?: string
+    category?: string
+  }
 }
 
 // Generate a random 6-character join code
@@ -262,9 +272,19 @@ export async function sendMessageToCommunity(
   userId: string,
   userName: string,
   content: string,
-  type: 'message' | 'page_share' = 'message',
+  type: 'message' | 'page_share' | 'image' | 'product_share' = 'message',
   pageUrl?: string,
-  pageTitle?: string
+  pageTitle?: string,
+  imageUrl?: string,
+  imageName?: string,
+  productData?: {
+    id: number | string
+    name: string
+    price: number
+    image?: string
+    brand?: string
+    category?: string
+  }
 ): Promise<void> {
   const messageRef = push(ref(realtimeDb, `communityMessages/${communityId}`))
   
@@ -276,7 +296,10 @@ export async function sendMessageToCommunity(
     timestamp: Date.now(),
     type,
     ...(pageUrl && { pageUrl }),
-    ...(pageTitle && { pageTitle })
+    ...(pageTitle && { pageTitle }),
+    ...(imageUrl && { imageUrl }),
+    ...(imageName && { imageName }),
+    ...(productData && { productData })
   }
 
   await set(messageRef, message)
@@ -394,22 +417,18 @@ export async function shareProductToCommunity(
     category?: string
   }
 ): Promise<void> {
-  const productMessage = `🛍️ **Check out this amazing product!**
-
-**${product.name}**
-💰 **Price**: ₹${product.price?.toFixed(2)}${product.brand ? `\n👔 **Brand**: ${product.brand}` : ''}${product.category ? `\n🏷️ **Category**: ${product.category}` : ''}
-
-${product.image ? `🖼️ **Image**: ${product.image}` : ''}
-
-What do you think about this piece? 💭✨`
+  const productMessage = `🛍️ Check out this amazing product!`
   
   await sendMessageToCommunity(
     communityId,
     userId,
     userName,
     productMessage,
-    'page_share',
-    `/products/${product.id}`,
-    product.name
+    'product_share',
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    product
   )
 }
