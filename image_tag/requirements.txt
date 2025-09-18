@@ -6,3 +6,6 @@ Pillow
 faiss-cpu
 numpy
 flask-cors
+fastapi
+uvicorn
+google-generativeai
