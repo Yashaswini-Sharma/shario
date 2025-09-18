@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 import { useProductSharing } from "@/lib/product-sharing-context-new"
 import { Community, CommunityMessage, getUserCommunities, sendMessageToCommunity, shareProductToCommunity, listenToCommunityMessages, leaveCommunity } from "@/lib/firebase-community-service"
+import { uploadImageAndAnalyze } from "@/lib/image-service"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,6 +42,8 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false)
+  const [imageAnalysisResults, setImageAnalysisResults] = useState<any>(null)
   
   const { user } = useAuth()
   const { currentProduct, setCurrentProduct } = useProductSharing()
@@ -98,7 +101,7 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
     }
   }
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     console.log('Image selected:', file?.name, file?.size)
     if (file) {
@@ -115,6 +118,28 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
       const preview = URL.createObjectURL(file)
       setImagePreview(preview)
       console.log('Image preview created:', preview)
+      
+      // Automatically analyze the image using our AI service
+      setIsAnalyzingImage(true)
+      try {
+        const analysisResults = await uploadImageAndAnalyze(file, 'other')
+        setImageAnalysisResults(analysisResults)
+        console.log('Image analysis completed:', analysisResults)
+        
+        toast({
+          title: "Image analyzed!",
+          description: `Found ${analysisResults.tags.length} tags and ${analysisResults.similarItems?.length || 0} similar items`,
+        })
+      } catch (error) {
+        console.error('Error analyzing image:', error)
+        toast({
+          title: "Analysis failed",
+          description: "Could not analyze image, but you can still send it",
+          variant: "destructive"
+        })
+      } finally {
+        setIsAnalyzingImage(false)
+      }
     }
   }
 
@@ -127,6 +152,8 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
+    setImageAnalysisResults(null)
+    setIsAnalyzingImage(false)
   }
 
   const convertImageToBase64 = (file: File): Promise<string> => {
@@ -147,11 +174,26 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
       const base64Image = await convertImageToBase64(selectedImage)
       console.log('Image converted to base64, length:', base64Image.length)
       
+      // Create an enriched message with analysis results
+      let messageText = newMessage.trim() || "Shared an image"
+      
+      if (imageAnalysisResults) {
+        if (imageAnalysisResults.tags && imageAnalysisResults.tags.length > 0) {
+          messageText += `\n🏷️ Tags: ${imageAnalysisResults.tags.slice(0, 3).join(', ')}`
+        }
+        if (imageAnalysisResults.caption) {
+          messageText += `\n💭 ${imageAnalysisResults.caption.slice(0, 100)}${imageAnalysisResults.caption.length > 100 ? '...' : ''}`
+        }
+        if (imageAnalysisResults.similarItems && imageAnalysisResults.similarItems.length > 0) {
+          messageText += `\n🔍 Found ${imageAnalysisResults.similarItems.length} similar items in our collection`
+        }
+      }
+      
       await sendMessageToCommunity(
         selectedCommunity.id,
         user.uid,
         user.displayName || user.email || 'Anonymous',
-        newMessage.trim() || "Shared an image",
+        messageText,
         'image',
         undefined,
         undefined,
@@ -165,7 +207,9 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
       
       toast({
         title: "Image sent",
-        description: "Your image was sent to the community"
+        description: imageAnalysisResults ? 
+          `Image sent with AI analysis: ${imageAnalysisResults.tags?.length || 0} tags detected` :
+          "Your image was sent to the community"
       })
     } catch (error) {
       console.error('Error sending image:', error)
@@ -651,13 +695,20 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                   {/* Image Preview */}
                   {imagePreview && (
                     <div className="p-3 border-t bg-purple-50 w-full max-w-full">
-                      <div className="text-xs text-purple-700 mb-2 font-medium">📷 Image ready to send:</div>
+                      <div className="text-xs text-purple-700 mb-2 font-medium">
+                        📷 {isAnalyzingImage ? 'Analyzing image...' : 'Image ready to send:'}
+                      </div>
                       <div className="relative inline-block">
                         <img 
                           src={imagePreview} 
                           alt="Preview" 
                           className="max-w-full h-20 object-cover rounded-lg border-2 border-purple-200"
                         />
+                        {isAnalyzingImage && (
+                          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                          </div>
+                        )}
                         <Button
                           size="sm"
                           variant="secondary"
@@ -667,15 +718,56 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
+                      
+                      {/* Analysis Results */}
+                      {imageAnalysisResults && (
+                        <div className="mt-2 space-y-2">
+                          {imageAnalysisResults.tags && imageAnalysisResults.tags.length > 0 && (
+                            <div>
+                              <div className="text-xs text-purple-600 font-medium mb-1">🏷️ Detected tags:</div>
+                              <div className="flex flex-wrap gap-1">
+                                {imageAnalysisResults.tags.slice(0, 3).map((tag: string, index: number) => (
+                                  <Badge key={index} variant="secondary" className="text-xs px-1 py-0">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                                {imageAnalysisResults.tags.length > 3 && (
+                                  <Badge variant="outline" className="text-xs px-1 py-0">
+                                    +{imageAnalysisResults.tags.length - 3} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {imageAnalysisResults.similarItems && imageAnalysisResults.similarItems.length > 0 && (
+                            <div>
+                              <div className="text-xs text-purple-600 font-medium mb-1">
+                                🔍 Found {imageAnalysisResults.similarItems.length} similar items
+                              </div>
+                            </div>
+                          )}
+                          
+                          {imageAnalysisResults.caption && (
+                            <div>
+                              <div className="text-xs text-purple-600 font-medium mb-1">💭 AI caption:</div>
+                              <div className="text-xs text-gray-700 italic">
+                                "{imageAnalysisResults.caption.slice(0, 60)}{imageAnalysisResults.caption.length > 60 ? '...' : ''}"
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="flex gap-2 mt-2">
                         <Button
                           onClick={handleSendImage}
-                          disabled={isUploadingImage}
+                          disabled={isUploadingImage || isAnalyzingImage}
                           size="sm"
                           className="flex-1 bg-purple-600 hover:bg-purple-700"
                         >
                           <ImageIcon className="h-3 w-3 mr-1" />
-                          {isUploadingImage ? 'Sending...' : 'Send Image'}
+                          {isUploadingImage ? 'Sending...' : isAnalyzingImage ? 'Analyzing...' : 'Send Image'}
                         </Button>
                       </div>
                       {selectedImage && (

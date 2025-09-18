@@ -5,13 +5,15 @@ import { Header } from "@/components/header"
 import { DatasetProductGrid } from "@/components/dataset-product-grid"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronDown, Filter, SlidersHorizontal, Grid3X3, LayoutGrid } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { ChevronDown, Filter, SlidersHorizontal, Grid3X3, LayoutGrid, Heart, Star, TrendingUp, Zap, Users } from "lucide-react"
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
+import Image from "next/image"
 
 export default function MensPage() {
   const [sortBy, setSortBy] = useState("recommended")
@@ -32,53 +34,155 @@ export default function MensPage() {
     "Casual", "Formal", "Party", "Sports", "Ethnic", "Lounge"
   ]
 
+  // Trending categories for men
+  const trendingCategories = [
+    {
+      id: 1,
+      name: "Shirts",
+      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/5/19/ca2ccfcd-7bec-4de3-86c4-8b442a5e06e01652946229619-Casual-Shirts---Roadster-H-M-Campus-Sutra---More.jpg",
+      discount: "40-80% OFF",
+      tag: "TRENDING"
+    },
+    {
+      id: 2,
+      name: "T-Shirts",
+      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/7/25/b656a7f4-4688-4997-bb7c-54b78793981e1658752429538-Kook-N-Keech-Disney-MARVEL-Free-Authority-Kook-N-Keech-Disn.jpg",
+      discount: "50-80% OFF",
+      tag: "BESTSELLER"
+    },
+    {
+      id: 3,
+      name: "Jeans",
+      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/5/19/ca2ccfcd-7bec-4de3-86c4-8b442a5e06e01652946229619-Casual-Shirts---Roadster-H-M-Campus-Sutra---More.jpg",
+      discount: "50-70% OFF",
+      tag: "NEW"
+    },
+    {
+      id: 4,
+      name: "Footwear",
+      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/5/19/66b7a5d2-8b8f-4dee-9b73-c89c2153f8051652946229644-Sports-Shoes---Nike--Adidas--Puma---More.jpg",
+      discount: "40-70% OFF",
+      tag: "POPULAR"
+    }
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
       {/* Breadcrumb */}
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-2">
+        <div className="container mx-auto px-4 py-3">
           <nav className="text-sm text-gray-600">
-            Home / <span className="text-gray-900 font-medium">Men</span>
+            <span className="hover:text-pink-500 cursor-pointer">Home</span>
+            <span className="mx-2">/</span>
+            <span className="text-gray-900 font-medium">Men</span>
           </nav>
         </div>
       </div>
 
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">Men's Fashion</h1>
-          <p className="text-xl opacity-90">Explore the latest trends and timeless classics</p>
+      {/* Hero Section with Categories */}
+      <div className="bg-white mb-6">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Men's Fashion</h1>
+              <p className="text-lg text-gray-600">Explore the latest trends • 50,000+ items</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="bg-pink-50 text-pink-700 hover:bg-pink-100">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Trending
+              </Badge>
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                <Zap className="h-3 w-3 mr-1" />
+                New Arrivals
+              </Badge>
+            </div>
+          </div>
+          
+          {/* Trending Categories Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {trendingCategories.map((category) => (
+              <Card key={category.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 overflow-hidden">
+                <CardContent className="p-0 relative">
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <Badge className={`
+                        text-xs font-bold px-2 py-1 
+                        ${category.tag === 'TRENDING' ? 'bg-pink-500 hover:bg-pink-600' : ''}
+                        ${category.tag === 'BESTSELLER' ? 'bg-orange-500 hover:bg-orange-600' : ''}
+                        ${category.tag === 'NEW' ? 'bg-green-500 hover:bg-green-600' : ''}
+                        ${category.tag === 'POPULAR' ? 'bg-blue-500 hover:bg-blue-600' : ''}
+                        text-white
+                      `}>
+                        {category.tag}
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                      <h3 className="text-white font-bold text-lg mb-1">{category.name}</h3>
+                      <p className="text-yellow-300 text-sm font-medium">{category.discount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row gap-6 py-6">
           
-          {/* Sidebar Filters */}
+          {/* Enhanced Sidebar Filters */}
           <aside className={`lg:w-72 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-6">
+            <div className="bg-white rounded-xl shadow-sm border p-6 sticky top-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold">FILTERS</h2>
+                <h2 className="text-lg font-bold text-gray-900">FILTERS</h2>
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="lg:hidden text-gray-500"
+                  className="lg:hidden text-gray-500 hover:text-gray-700"
                   onClick={() => setShowFilters(false)}
                 >
                   ✕
                 </Button>
               </div>
 
+              {/* Quick Filters */}
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="cursor-pointer hover:bg-pink-50 hover:text-pink-700 hover:border-pink-300">
+                    <Users className="h-3 w-3 mr-1" />
+                    Popular
+                  </Badge>
+                  <Badge variant="outline" className="cursor-pointer hover:bg-pink-50 hover:text-pink-700 hover:border-pink-300">
+                    <Star className="h-3 w-3 mr-1" />
+                    4★ & above
+                  </Badge>
+                  <Badge variant="outline" className="cursor-pointer hover:bg-pink-50 hover:text-pink-700 hover:border-pink-300">
+                    Sale
+                  </Badge>
+                </div>
+              </div>
+
               {/* Categories */}
               <div className="mb-6">
-                <h3 className="font-medium text-sm mb-3 text-gray-800 uppercase tracking-wide">Categories</h3>
-                <div className="space-y-2">
+                <h3 className="font-bold text-sm mb-4 text-gray-900 uppercase tracking-wide">Categories</h3>
+                <div className="space-y-3">
                   {categories.map((category) => (
-                    <label key={category} className="flex items-center cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 text-pink-500 rounded border-gray-300" />
-                      <span className="ml-3 text-sm text-gray-700 hover:text-pink-500">{category}</span>
+                    <label key={category} className="flex items-center cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-pink-500 rounded border-gray-300 focus:ring-pink-500 focus:ring-2" 
+                      />
+                      <span className="ml-3 text-sm text-gray-700 group-hover:text-pink-600 transition-colors">{category}</span>
                     </label>
                   ))}
                 </div>
@@ -86,12 +190,15 @@ export default function MensPage() {
 
               {/* Brands */}
               <div className="mb-6">
-                <h3 className="font-medium text-sm mb-3 text-gray-800 uppercase tracking-wide">Brand</h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <h3 className="font-bold text-sm mb-4 text-gray-900 uppercase tracking-wide">Brand</h3>
+                <div className="space-y-3 max-h-48 overflow-y-auto">
                   {brands.map((brand) => (
-                    <label key={brand} className="flex items-center cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 text-pink-500 rounded border-gray-300" />
-                      <span className="ml-3 text-sm text-gray-700 hover:text-pink-500">{brand}</span>
+                    <label key={brand} className="flex items-center cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-pink-500 rounded border-gray-300 focus:ring-pink-500 focus:ring-2" 
+                      />
+                      <span className="ml-3 text-sm text-gray-700 group-hover:text-pink-600 transition-colors">{brand}</span>
                     </label>
                   ))}
                 </div>

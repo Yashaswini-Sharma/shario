@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription 
 } from "@/components/ui/dialog"
-import { uploadImageAndAnalyze, type ImageData } from "@/lib/image-service"
+import { uploadImageAndAnalyze, searchImagesByImage, type ImageData } from "@/lib/image-service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
@@ -116,8 +116,22 @@ export function Header() {
     try {
       setIsAnalyzing(true)
       setShowResults(true)
+      
+      // Use the enhanced image analysis that includes image search
       const result = await uploadImageAndAnalyze(file)
       setSearchResults(result)
+      
+      // Also perform pure image search for additional similar images
+      try {
+        const similarImagePaths = await searchImagesByImage(file, undefined, 15)
+        console.log('Found similar images:', similarImagePaths)
+        
+        // You can use these paths to enhance the search results
+        // For now, we'll let the uploadImageAndAnalyze function handle the integration
+      } catch (searchError) {
+        console.warn('Additional image search failed:', searchError)
+      }
+      
     } catch (error) {
       console.error('Error analyzing image:', error)
     } finally {

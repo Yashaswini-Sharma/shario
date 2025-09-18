@@ -284,7 +284,7 @@ export function CommunityEnhancedSidebar() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setIsOpen(false)}
           />
-          <div className="ml-auto relative bg-white w-80 min-w-80 max-w-80 h-full shadow-2xl overflow-hidden">
+          <div className="ml-auto relative bg-white w-72 min-w-72 max-w-72 h-full shadow-2xl overflow-hidden">
             <div className="p-6 h-full flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
