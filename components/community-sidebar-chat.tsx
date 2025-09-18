@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { MessageCircle, Users, Share2, X, ArrowLeft, Send, Hash, LogOut, ExternalLink, Image as ImageIcon, Paperclip } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
+import { useCommunity } from "@/lib/community-context"
 import { useProductSharing } from "@/lib/product-sharing-context-new"
 import { Community, CommunityMessage, getUserCommunities, sendMessageToCommunity, shareProductToCommunity, listenToCommunityMessages, leaveCommunity } from "@/lib/firebase-community-service"
 import { uploadImageAndAnalyze } from "@/lib/image-service"
@@ -46,6 +47,7 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
   const [imageAnalysisResults, setImageAnalysisResults] = useState<any>(null)
   
   const { user } = useAuth()
+  const { currentCommunity, userCommunities: contextCommunities, currentCommunityCode, setCurrentCommunityCode } = useCommunity()
   const { currentProduct, setCurrentProduct } = useProductSharing()
   const { toast } = useToast()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -66,6 +68,23 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
     }
   }, [user])
 
+  // Sync selectedCommunity with currentCommunity from context
+  useEffect(() => {
+    if (currentCommunity) {
+      setSelectedCommunity(currentCommunity)
+      setShowCommunityList(false)
+    } else if (contextCommunities.length > 0 && !selectedCommunity) {
+      // Fallback to first community if no current community but communities exist
+      setSelectedCommunity(contextCommunities[0])
+      setShowCommunityList(false)
+    }
+  }, [currentCommunity, contextCommunities])
+
+  // Use context communities instead of local state
+  useEffect(() => {
+    setUserCommunities(contextCommunities)
+  }, [contextCommunities])
+
   // Listen to messages when a community is selected
   useEffect(() => {
     if (selectedCommunity) {
@@ -77,28 +96,9 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
   }, [selectedCommunity])
 
   const loadUserCommunities = async () => {
-    if (!user) return
-    
-    setIsLoading(true)
-    try {
-      const communities = await getUserCommunities(user.uid)
-      setUserCommunities(communities)
-      
-      // Auto-select first community if available
-      if (communities.length > 0 && !selectedCommunity) {
-        setSelectedCommunity(communities[0])
-        setShowCommunityList(false)
-      }
-    } catch (error) {
-      console.error('Error loading communities:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load your communities",
-        variant: "destructive"
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    // Communities are now managed by the context, so we don't need to load them here
+    // The context will handle loading and the useEffect above will sync them
+    return
   }
 
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -364,8 +364,12 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
         description: `You have left ${selectedCommunity.name}`
       })
       
-      // Refresh communities list and go back to community selection
-      await loadUserCommunities()
+      // Clear the current community in context if we're leaving the current community
+      if (currentCommunity?.id === selectedCommunity.id) {
+        setCurrentCommunityCode(null)
+      }
+      
+      // Go back to community selection
       setShowCommunityList(true)
       setSelectedCommunity(null)
     } catch (error) {
@@ -392,11 +396,14 @@ export function CommunitySidebarChat({ isOpen, onToggle }: CommunitySidebarChatP
   const selectCommunity = (community: Community) => {
     setSelectedCommunity(community)
     setShowCommunityList(false)
+    // Update the global community context when user manually selects a community
+    setCurrentCommunityCode(community.joinCode)
   }
 
   const backToCommunityList = () => {
     setShowCommunityList(true)
-    setSelectedCommunity(null)
+    // Don't clear selectedCommunity immediately - let the context sync handle it
+    // This way if user goes back and selects the same community, it maintains context
   }
 
   const formatMessageTime = (timestamp: any) => {

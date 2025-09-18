@@ -658,7 +658,7 @@ function StylingPhase() {
                               disabled={myCartTotal + item.price > currentRoom.budget || addingItem === item.id}
                               className={`px-4 py-2 rounded-2xl font-medium transition-all duration-300 ${
                                 myCartTotal + item.price > currentRoom.budget 
-                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  ? 'bg-red-100 text-red-600 border-2 border-red-300 cursor-not-allowed opacity-90 hover:bg-red-100'
                                   : addingItem === item.id
                                     ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white animate-pulse'
                                     : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white hover:scale-110 shadow-lg'
@@ -666,6 +666,11 @@ function StylingPhase() {
                             >
                               {addingItem === item.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : myCartTotal + item.price > currentRoom.budget ? (
+                                <>
+                                  <ShoppingBag className="h-4 w-4 mr-1" />
+                                  Over Budget
+                                </>
                               ) : (
                                 <>
                                   <ShoppingBag className="h-4 w-4 mr-1" />
@@ -751,7 +756,7 @@ function StylingPhase() {
                 <Button 
                   className={`w-full h-14 text-lg font-bold rounded-2xl shadow-2xl transition-all duration-300 ${
                     cartItems.length === 0 || timeRemaining <= 0 || submitting
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-red-100 text-red-600 border-2 border-red-300 cursor-not-allowed opacity-90 hover:bg-red-100'
                       : 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white hover:scale-105 animate-pulse'
                   }`}
                   disabled={cartItems.length === 0 || timeRemaining <= 0 || submitting}
@@ -1064,7 +1069,7 @@ function VotingPhase() {
               disabled={Object.keys(selectedRatings).length === 0 || Object.values(selectedRatings).some(r => r === 0)}
               className={`px-12 py-6 text-xl font-bold rounded-2xl shadow-2xl transition-all duration-500 transform hover:scale-110 ${
                 Object.keys(selectedRatings).length === 0 || Object.values(selectedRatings).some(r => r === 0)
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-red-100 text-red-600 border-2 border-red-300 cursor-not-allowed opacity-90 hover:bg-red-100'
                   : 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white animate-pulse hover:animate-bounce'
               }`}
             >
