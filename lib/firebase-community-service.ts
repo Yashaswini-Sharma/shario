@@ -175,7 +175,12 @@ export async function joinCommunityByCode(
     const memberSnapshot = await get(memberRef)
 
     if (memberSnapshot.exists()) {
-      return { success: false, error: 'You are already a member of this community' }
+      // Return success with the community data if already a member
+      return { 
+        success: true, 
+        community: { ...communityData, id: communityId },
+        error: 'You are already a member of this community'
+      }
     }
 
     // Check if community is full
@@ -431,4 +436,57 @@ export async function shareProductToCommunity(
     undefined,
     product
   )
+}
+
+// Get community messages
+export async function getCommunityMessages(communityId: string): Promise<CommunityMessage[]> {
+  try {
+    const messagesRef = ref(realtimeDb, `communityMessages/${communityId}`)
+    const snapshot = await get(messagesRef)
+
+    if (!snapshot.exists()) {
+      return []
+    }
+
+    const messagesData = snapshot.val()
+    const messagesArray = Object.values(messagesData) as CommunityMessage[]
+    const messages = messagesArray.sort((a: any, b: any) => a.timestamp - b.timestamp)
+
+    return messages
+  } catch (error) {
+    console.error('Error fetching community messages:', error)
+    return []
+  }
+}
+
+// Send message to community (alias for existing function)
+export async function sendCommunityMessage(
+  communityId: string,
+  userId: string,
+  userName: string,
+  content: string,
+  type: 'message' | 'page_share' | 'image' | 'product_share' = 'message'
+): Promise<void> {
+  return sendMessageToCommunity(communityId, userId, userName, content, type)
+}
+
+// Subscribe to real-time message updates
+export function subscribeToMessages(
+  communityId: string,
+  callback: (messages: CommunityMessage[]) => void
+): () => void {
+  const messagesRef = ref(realtimeDb, `communityMessages/${communityId}`)
+  
+  const unsubscribe = onValue(messagesRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const messagesData = snapshot.val()
+      const messagesArray = Object.values(messagesData) as CommunityMessage[]
+      const messages = messagesArray.sort((a: any, b: any) => a.timestamp - b.timestamp)
+      callback(messages)
+    } else {
+      callback([])
+    }
+  })
+
+  return () => off(messagesRef, 'value', unsubscribe)
 }

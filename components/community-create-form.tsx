@@ -82,20 +82,24 @@ export function CommunityCreateForm({ onCommunityCreated, onCancel }: CommunityC
         tags
       )
 
-      toast({
-        title: "Success!",
-        description: `Community "${name}" created successfully! Join code: ${result.joinCode}`,
-      })
+      if (result && result.community && result.joinCode) {
+        toast({
+          title: "Success!",
+          description: `Community "${name}" created successfully! Join code: ${result.joinCode}`,
+        })
 
-      onCommunityCreated?.(result.community, result.joinCode)
+        onCommunityCreated?.(result.community, result.joinCode)
 
-      // Reset form
-      setName("")
-      setDescription("")
-      setType('public')
-      setMaxMembers("100")
-      setTags([])
-      setTagInput("")
+        // Reset form
+        setName("")
+        setDescription("")
+        setType('public')
+        setMaxMembers("100")
+        setTags([])
+        setTagInput("")
+      } else {
+        throw new Error("Invalid response from server")
+      }
 
     } catch (error) {
       console.error('Error creating community:', error)

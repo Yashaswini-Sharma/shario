@@ -39,28 +39,28 @@ export default function MensPage() {
     {
       id: 1,
       name: "Shirts",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/5/19/ca2ccfcd-7bec-4de3-86c4-8b442a5e06e01652946229619-Casual-Shirts---Roadster-H-M-Campus-Sutra---More.jpg",
+      image: "/classic white shirt.webp",
       discount: "40-80% OFF",
       tag: "TRENDING"
     },
     {
       id: 2,
       name: "T-Shirts",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/7/25/b656a7f4-4688-4997-bb7c-54b78793981e1658752429538-Kook-N-Keech-Disney-MARVEL-Free-Authority-Kook-N-Keech-Disn.jpg",
+      image: "/t-shirts.webp",
       discount: "50-80% OFF",
       tag: "BESTSELLER"
     },
     {
       id: 3,
       name: "Jeans",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/5/19/ca2ccfcd-7bec-4de3-86c4-8b442a5e06e01652946229619-Casual-Shirts---Roadster-H-M-Campus-Sutra---More.jpg",
+      image: "/mensjeans.jpeg",
       discount: "50-70% OFF",
       tag: "NEW"
     },
     {
       id: 4,
       name: "Footwear",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/5/19/66b7a5d2-8b8f-4dee-9b73-c89c2153f8051652946229644-Sports-Shoes---Nike--Adidas--Puma---More.jpg",
+      image: "/footwear.jpeg",
       discount: "40-70% OFF",
       tag: "POPULAR"
     }

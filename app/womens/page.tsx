@@ -40,28 +40,28 @@ export default function WomensPage() {
     {
       id: 1,
       name: "Kurtas & Suits",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/6/27/02d2f6a4-e59b-4e42-b3aa-bf8e2f5f14d41656304717041-Kurtas-_-Kurta-Sets---Libas--Anouk--Aurelia---More.jpg",
+      image: "/Kurtas & suits.jpeg",
       discount: "50-80% OFF",
       tag: "FESTIVE"
     },
     {
       id: 2,
       name: "Sarees",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/6/27/ca71fee7-3cbb-4b20-b5e5-49327c177b651656304717073-Sarees---Mitera--KALINI--Molcha---More.jpg",
+      image: "/sarees.jpeg",
       discount: "40-70% OFF",
       tag: "TRENDING"
     },
     {
       id: 3,
       name: "Dresses",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/6/27/ca71fee7-3cbb-4b20-b5e5-49327c177b651656304717073-Sarees---Mitera--KALINI--Molcha---More.jpg",
+      image: "/sarees.jpeg",
       discount: "60-80% OFF",
       tag: "BESTSELLER"
     },
     {
       id: 4,
       name: "Beauty & Makeup",
-      image: "https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/6/27/177a4c46-a5f8-4ccb-a8e0-12edc1e8dbe91656304717105-Beauty---Lakme--Maybelline--The-Face-Shop---More.jpg",
+      image: "/beauty and makeup.jpeg",
       discount: "25-60% OFF",
       tag: "NEW"
     }

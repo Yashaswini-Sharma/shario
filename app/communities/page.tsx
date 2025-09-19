@@ -68,10 +68,19 @@ export default function CommunitiesPage() {
       const result = await joinCommunityByCode(joinCode.trim().toUpperCase(), user!.uid, user!.displayName || "User")
       
       if (result.success && result.community) {
-        toast({
-          title: "Joined Community!",
-          description: `Welcome to ${result.community.name}`,
-        })
+        if (result.error === "You are already a member of this community") {
+          // If already a member, show welcome back message
+          toast({
+            title: "Welcome back!",
+            description: `You're already a member of ${result.community.name}. Redirecting to chat...`,
+          })
+        } else {
+          // New member joined
+          toast({
+            title: "Joined Community!",
+            description: `Welcome to ${result.community.name}`,
+          })
+        }
         
         // Navigate to the community chat
         router.push(`/communities/${result.community.id}`)
@@ -97,10 +106,19 @@ export default function CommunitiesPage() {
       const result = await joinCommunityByCode(community.joinCode, user!.uid, user!.displayName || "User")
       
       if (result.success && result.community) {
-        toast({
-          title: "Joined Community!",
-          description: `Welcome to ${result.community.name}`,
-        })
+        if (result.error === "You are already a member of this community") {
+          // If already a member, show welcome back message
+          toast({
+            title: "Welcome back!",
+            description: `You're already a member of ${result.community.name}. Redirecting to chat...`,
+          })
+        } else {
+          // New member joined
+          toast({
+            title: "Joined Community!",
+            description: `Welcome to ${result.community.name}`,
+          })
+        }
         
         // Navigate to the community chat
         router.push(`/communities/${community.id}`)
@@ -128,8 +146,15 @@ export default function CommunitiesPage() {
       description: `${community.name} is ready for members`,
     })
     
-    // Navigate to the new community
-    router.push(`/communities/${community.id}`)
+    // Navigate to the new community with a slight delay to ensure the community is properly created
+    setTimeout(() => {
+      if (community?.id) {
+        router.push(`/communities/${community.id}`)
+      } else {
+        // Fallback to communities page if community id is not available
+        router.push('/communities')
+      }
+    }, 1000)
   }
 
   const filteredPublicCommunities = publicCommunities.filter(community =>
@@ -137,6 +162,11 @@ export default function CommunitiesPage() {
     community.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (community.tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   )
+
+  // Check if user is already a member of a public community
+  const isAlreadyMember = (community: Community) => {
+    return userCommunities.some(userComm => userComm.id === community.id)
+  }
 
   if (!user) {
     return (
@@ -334,20 +364,40 @@ export default function CommunitiesPage() {
                             )}
                             
                             <Button 
-                              onClick={() => handleJoinCommunity(community)}
+                              onClick={() => {
+                                if (isAlreadyMember(community)) {
+                                  router.push(`/communities/${community.id}`)
+                                } else {
+                                  handleJoinCommunity(community)
+                                }
+                              }}
                               disabled={isJoining === community.id}
-                              className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 border-0 text-white shadow-xl rounded-xl py-3 text-base font-medium transform hover:scale-105 transition-all duration-300"
+                              className={`w-full border-0 text-white shadow-xl rounded-xl py-3 text-base font-medium transform hover:scale-105 transition-all duration-300 ${
+                                isAlreadyMember(community) 
+                                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+                                  : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
+                              }`}
                             >
                               {isJoining === community.id ? (
                                 <>
                                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                                  Joining...
+                                  {isAlreadyMember(community) ? 'Opening...' : 'Joining...'}
                                 </>
                               ) : (
                                 <>
-                                  <ArrowRight className="h-5 w-5 mr-2" />
-                                  Join & Chat
-                                  <Sparkles className="h-4 w-4 ml-2" />
+                                  {isAlreadyMember(community) ? (
+                                    <>
+                                      <MessageCircle className="h-5 w-5 mr-2" />
+                                      Open Chat
+                                      <Heart className="h-4 w-4 ml-2" />
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ArrowRight className="h-5 w-5 mr-2" />
+                                      Join & Chat
+                                      <Sparkles className="h-4 w-4 ml-2" />
+                                    </>
+                                  )}
                                 </>
                               )}
                             </Button>
