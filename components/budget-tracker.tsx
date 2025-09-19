@@ -98,7 +98,7 @@ export function BudgetTracker({ budget, selectedItems, className = '' }: BudgetT
         {/* Items Summary */}
         <div className="space-y-2 pt-2 border-t">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4 text-gray-500" />
+            <ShoppingBag className="w-4 h-4 text-gray-800" />
             <span className="text-sm font-medium">
               {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
             </span>

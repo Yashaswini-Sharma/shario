@@ -193,19 +193,19 @@ export function DatasetProductCard({ item, onClick }: DatasetProductCardProps) {
           onClick={handleAddToCart}
           disabled={isAddingToCart}
           className={`w-full ${isInGame 
-            ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+            ? 'bg-blue-600 hover:bg-blue-700 text-white' 
             : 'bg-primary hover:bg-primary/90 text-primary-foreground'
           }`}
           size="sm"
         >
           {isAddingToCart ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 bg-blue-600 border-current border-t-transparent rounded-full animate-spin" />
               Adding...
             </div>
           ) : isInGame ? (
-            <div className="flex items-center gap-2">
-              <Gamepad2 className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-black">
+              <Gamepad2 className="w-4 h-4 text-black" />
               Add to Game Cart
             </div>
           ) : (

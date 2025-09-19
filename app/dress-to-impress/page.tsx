@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from 'next/navigation'
 import { getProductPrice } from "@/lib/pricing-utils"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
@@ -37,6 +38,7 @@ import Link from 'next/link'
 function GameLobby() {
   const { currentRoom, markReady, leaveGame, getCurrentPlayer, getOtherPlayers, canStartGame } = useGame()
   const { user } = useAuth()
+  const router = useRouter()
   const [isAnimating, setIsAnimating] = useState(false)
   
   if (!currentRoom) return null
@@ -92,6 +94,8 @@ function GameLobby() {
         title: "Left Arena",
         description: "You've left the fashion arena.",
       })
+      // Redirect to home page
+      router.push('/')
     } catch (error) {
       console.error('❌ Error leaving game:', error)
       toast({
@@ -711,7 +715,7 @@ function StylingPhase() {
               {cartItems.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
-                    <ShoppingBag className="h-10 w-10 text-purple-400" />
+                    <ShoppingBag className="h-10 w-10 text-purple-600" />
                   </div>
                   <p className="text-lg font-medium text-gray-600 mb-2">Your Canvas Awaits</p>
                   <p className="text-sm text-gray-400">Start adding pieces to create your masterpiece!</p>
@@ -1026,7 +1030,7 @@ function VotingPhase() {
                       </div>
                     ) : (
                       <div className="text-center py-12 text-gray-400">
-                        <ShoppingBag className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                        <ShoppingBag className="h-16 w-16 mx-auto mb-4 opacity-70 text-gray-600" />
                         <p className="text-lg">No items in this outfit</p>
                       </div>
                     )}
@@ -1090,9 +1094,22 @@ function VotingPhase() {
 
 function ResultsPhase() {
   const { currentRoom, playersGameCarts, cartVotingResults, leaveGame } = useGame()
+  const router = useRouter()
   const [autoLeaveCountdown, setAutoLeaveCountdown] = useState(15) // 15 second countdown
   const [votingResults, setVotingResults] = useState<{[playerId: string]: { totalScore: number, averageScore: number, voteCount: number, comments: string[], playerName: string, cart: any[] }} | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
+  
+  // Handler for leaving game and redirecting to home
+  const handleLeaveGameAndRedirect = async () => {
+    try {
+      await leaveGame()
+      router.push('/')
+    } catch (error) {
+      console.error('Error leaving game:', error)
+      // Still redirect even if leave fails
+      router.push('/')
+    }
+  }
   
   // Fetch voting results when component mounts
   useEffect(() => {
@@ -1118,6 +1135,7 @@ function ResultsPhase() {
         if (prev <= 1) {
           // Auto leave when countdown reaches 0
           leaveGame()
+          router.push('/') // Redirect to home
           return 0
         }
         return prev - 1
@@ -1125,12 +1143,12 @@ function ResultsPhase() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [leaveGame])
+  }, [leaveGame, router])
   
   if (!currentRoom) return null
 
   // Calculate results from voting using the fetched results
-  const playerResults = Object.values(currentRoom.players).map(player => {
+  const playerResults = currentRoom.players ? Object.values(currentRoom.players).map(player => {
     const playerCart = playersGameCarts[player.userId] || []
     const cartTotal = playerCart.reduce((sum, item) => sum + item.price, 0)
     
@@ -1146,7 +1164,7 @@ function ResultsPhase() {
       averageRating,
       totalVotes: voteCount
     }
-  }).sort((a, b) => b.averageRating - a.averageRating)
+  }).sort((a, b) => b.averageRating - a.averageRating) : []
 
   // Find winners (could be multiple if tied)
   const highestRating = playerResults[0]?.averageRating || 0
@@ -1414,7 +1432,7 @@ function ResultsPhase() {
         </Card>
         
         <Button 
-          onClick={leaveGame} 
+          onClick={handleLeaveGameAndRedirect} 
           className="px-12 py-6 text-xl font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white rounded-2xl shadow-2xl transform hover:scale-110 transition-all duration-300"
         >
           <Trophy className="h-6 w-6 mr-3" />
