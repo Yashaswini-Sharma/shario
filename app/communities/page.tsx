@@ -240,7 +240,7 @@ export default function CommunitiesPage() {
                 <h1 className="text-7xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-2xl mb-4 animate-gradient-x">
                   Fashion Communities
                 </h1>
-                <div className="text-2xl font-bold text-gray-800 mb-2">
+                <div className="text-2xl font-bold text-black mb-2">
                   Connect • Share • Style Together
                 </div>
               </div>
@@ -249,7 +249,7 @@ export default function CommunitiesPage() {
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-pink-400 rounded-full animate-ping opacity-75"></div>
               </div>
             </div>
-            <p className="text-xl text-gray-800 max-w-4xl mx-auto leading-relaxed font-medium mb-8">
+            <p className="text-xl text-black max-w-4xl mx-auto leading-relaxed font-medium mb-8">
               Connect with fellow fashion enthusiasts worldwide, share your style inspiration, 
               and discover new trends through vibrant real-time conversations.
             </p>
@@ -303,12 +303,14 @@ export default function CommunitiesPage() {
               <TabsContent value="public" className="space-y-8">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <Search className="text-gray-400 h-5 w-5" />
+                    </div>
                     <Input
                       placeholder="Search fashion communities..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-12 bg-white/10 backdrop-blur-xl border-0 text-white placeholder-gray-400 rounded-xl py-4 text-lg focus:ring-2 focus:ring-cyan-400"
+                      className="pl-10 bg-white/10 backdrop-blur-xl border-0 text-white placeholder-gray-400 rounded-xl py-4 text-lg focus:ring-2 focus:ring-cyan-400 w-full"
                     />
                   </div>
                 </div>
@@ -321,14 +323,14 @@ export default function CommunitiesPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredPublicCommunities.map((community) => (
-                      <Card key={community.id} className="group bg-white/10 backdrop-blur-xl border-0 shadow-2xl hover:shadow-3xl rounded-3xl transition-all duration-500 hover:scale-105 overflow-hidden">
+                      <Card key={community.id} className="group bg-white/10 backdrop-blur-xl border border-gray-700 shadow-2xl hover:shadow-3xl rounded-3xl transition-all duration-500 hover:scale-105 overflow-hidden">
                         <CardHeader className="pb-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <CardTitle className="text-xl text-gray-100 line-clamp-1 group-hover:text-cyan-400 transition-colors duration-300">
                                 {community.name}
                               </CardTitle>
-                              <CardDescription className="line-clamp-2 mt-2 text-gray-300 text-base leading-relaxed">
+                              <CardDescription className="line-clamp-2 mt-2 text-gray-200 text-base leading-relaxed">
                                 {community.description}
                               </CardDescription>
                             </div>
@@ -340,12 +342,12 @@ export default function CommunitiesPage() {
                         </CardHeader>
                         <CardContent className="pt-0">
                           <div className="space-y-6">
-                            <div className="flex items-center justify-between text-sm text-gray-300">
+                            <div className="flex items-center justify-between text-sm text-gray-200">
                               <span className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-2">
                                 <Users className="h-4 w-4 text-cyan-400" />
                                 <span className="font-medium">{community.memberCount}/{community.maxMembers}</span>
                               </span>
-                              <span className="text-gray-400">by {community.createdByName}</span>
+                              <span className="text-gray-300">by {community.createdByName}</span>
                             </div>
                             
                             {(community.tags || []).length > 0 && (
@@ -412,8 +414,8 @@ export default function CommunitiesPage() {
                           <MessageCircle className="h-20 w-20 mx-auto text-gray-400 animate-bounce" />
                           <div className="absolute -top-2 -right-2 w-8 h-8 bg-cyan-400 rounded-full animate-ping opacity-50"></div>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-300 mb-4">No communities found</h3>
-                        <p className="text-gray-400 text-lg leading-relaxed max-w-md mx-auto">
+                        <h3 className="text-2xl font-bold text-gray-200 mb-4">No communities found</h3>
+                        <p className="text-gray-300 text-lg leading-relaxed max-w-md mx-auto">
                           {searchQuery 
                             ? "Try adjusting your search terms or explore different topics" 
                             : "Be the first to create a public community and start the conversation!"
@@ -442,7 +444,7 @@ export default function CommunitiesPage() {
                               <CardTitle className="text-xl text-gray-100 line-clamp-1 group-hover:text-purple-400 transition-colors duration-300">
                                 {community.name}
                               </CardTitle>
-                              <CardDescription className="line-clamp-2 mt-2 text-gray-300 text-base leading-relaxed">
+                              <CardDescription className="line-clamp-2 mt-2 text-gray-200 text-base leading-relaxed">
                                 {community.description}
                               </CardDescription>
                             </div>
@@ -461,7 +463,7 @@ export default function CommunitiesPage() {
                         </CardHeader>
                         <CardContent className="pt-0">
                           <div className="space-y-6">
-                            <div className="flex items-center justify-between text-sm text-gray-300">
+                            <div className="flex items-center justify-between text-sm text-gray-200">
                               <span className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-2">
                                 <Users className="h-4 w-4 text-purple-400" />
                                 <span className="font-medium">{community.memberCount}/{community.maxMembers}</span>
@@ -500,8 +502,8 @@ export default function CommunitiesPage() {
                           <Users className="h-20 w-20 mx-auto text-gray-400 animate-bounce" />
                           <div className="absolute -top-2 -right-2 w-8 h-8 bg-purple-400 rounded-full animate-ping opacity-50"></div>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-300 mb-4">No communities yet</h3>
-                        <p className="text-gray-400 text-lg leading-relaxed max-w-md mx-auto mb-8">
+                        <h3 className="text-2xl font-bold text-gray-200 mb-4">No communities yet</h3>
+                        <p className="text-gray-300 text-lg leading-relaxed max-w-md mx-auto mb-8">
                           Create your first community or join an existing one to start building connections.
                         </p>
                         <Button 
@@ -529,13 +531,13 @@ export default function CommunitiesPage() {
                     <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-red-400 bg-clip-text text-transparent mb-4">
                       Join with Code
                     </CardTitle>
-                    <CardDescription className="text-gray-300 text-lg leading-relaxed">
+                    <CardDescription className="text-gray-200 text-lg leading-relaxed">
                       Enter a 6-character community code to join a private fashion community
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-8 space-y-6">
                     <div className="space-y-3">
-                      <Label htmlFor="join-code" className="text-gray-300 font-medium text-base">
+                      <Label htmlFor="join-code" className="text-gray-200 font-medium text-base">
                         Community Code
                       </Label>
                       <Input
@@ -544,7 +546,7 @@ export default function CommunitiesPage() {
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                         maxLength={6}
-                        className="text-center text-2xl font-mono tracking-[0.5em] bg-white/10 backdrop-blur-xl border-0 text-white placeholder-gray-400 rounded-xl py-6 focus:ring-2 focus:ring-pink-400"
+                        className="text-center text-2xl font-mono tracking-[0.5em] bg-white/10 backdrop-blur-xl border-0 text-white placeholder-gray-500 rounded-xl py-6 focus:ring-2 focus:ring-pink-400"
                       />
                     </div>
                     
@@ -578,7 +580,7 @@ export default function CommunitiesPage() {
                       <CardTitle className="text-2xl font-bold text-gray-100 text-center">
                         Community Management
                       </CardTitle>
-                      <CardDescription className="text-gray-300 text-center text-lg">
+                      <CardDescription className="text-gray-200 text-center text-lg">
                         Manage your communities and moderate discussions
                       </CardDescription>
                     </CardHeader>
@@ -596,7 +598,7 @@ export default function CommunitiesPage() {
             <DialogContent className="max-w-2xl bg-white/10 backdrop-blur-xl border-0 shadow-2xl rounded-3xl">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold text-gray-100">Create New Community</DialogTitle>
-                <DialogDescription className="text-gray-300 text-base">
+                <DialogDescription className="text-gray-200 text-base">
                   Start your own fashion community and invite others to join the conversation.
                 </DialogDescription>
               </DialogHeader>

@@ -149,7 +149,7 @@ export function FirebaseCommunityMessaging({ communityId }: FirebaseCommunityMes
                       <div
                         className={`max-w-[70%] rounded-2xl px-4 py-2 ${
                           msg.userId === user?.uid
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white'
+                            ? 'bg-pink-200 text-black'
                             : 'bg-white/10 text-gray-100'
                         }`}
                       >
@@ -162,7 +162,7 @@ export function FirebaseCommunityMessaging({ communityId }: FirebaseCommunityMes
                         <div
                           className={`text-xs mt-1 ${
                             msg.userId === user?.uid
-                              ? 'text-purple-200'
+                              ? 'text-gray-700'
                               : 'text-gray-400'
                           }`}
                         >
